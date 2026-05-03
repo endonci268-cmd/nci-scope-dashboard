@@ -3,119 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NCI Endoscope Real-time Dashboard</title>
+    <title>NCI SCOPETAGLINE V2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Kanit', sans-serif; }
-        .status-ready { background-color: #d1fae5; color: #065f46; }
-        .status-repair { background-color: #fee2e2; color: #991b1b; }
+        .status-ready { background-color: #ecfdf5; color: #065f46; border: 1px solid #10b981; }
+        .status-repair { background-color: #fef2f2; color: #991b1b; border: 1px solid #ef4444; }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50 min-h-screen pb-10">
 
-    <nav class="bg-blue-600 p-4 text-white shadow-lg">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold">NCI SCOPETAGLINE V.2</h1>
-            <span id="update-time" class="text-sm">กำลังโหลดข้อมูล...</span>
+    <!-- Header: ติดหนึบด้านบน -->
+    <nav class="bg-blue-900 text-white p-4 shadow-md sticky top-0 z-50">
+        <div class="container mx-auto">
+            <div class="flex justify-between items-center">
+                <h1 class="text-lg font-bold">NCI SCOPE V.2</h1>
+                <span id="update-time" class="text-[10px] bg-blue-800 px-2 py-1 rounded">กำลังโหลด...</span>
+            </div>
         </div>
     </nav>
 
-    <div class="container mx-auto p-4 md:p-8">
-        <!-- Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
-                <p class="text-gray-500 text-sm">กล้องทั้งหมด</p>
-                <h2 id="total-count" class="text-3xl font-bold">0</h2>
+    <div class="container mx-auto p-4">
+        <!-- Summary Cards: ปรับขนาดตัวอักษรให้พอดีมือถือ -->
+        <div class="grid grid-cols-2 gap-3 mb-6">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center">
+                <p class="text-gray-500 text-xs mb-1">พร้อมใช้</p>
+                <p id="ready-count" class="text-3xl font-bold text-green-600">0</p>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
-                <p class="text-gray-500 text-sm">พร้อมใช้งาน</p>
-                <h2 id="ready-count" class="text-3xl font-bold text-green-600">0</h2>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500">
-                <p class="text-gray-500 text-sm">ส่งซ่อม/ไม่พร้อมใช้</p>
-                <h2 id="repair-count" class="text-3xl font-bold text-red-600">0</h2>
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center">
+                <p class="text-gray-500 text-xs mb-1">ส่งซ่อม</p>
+                <p id="repair-count" class="text-3xl font-bold text-red-600">0</p>
             </div>
         </div>
 
-        <!-- Data Table -->
-        <div class="bg-white rounded-xl shadow-md overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-gray-100 text-gray-700">
-                        <tr>
-                            <th class="p-4 border-b">ประเภทกล้อง</th>
-                            <th class="p-4 border-b">รหัสกล้อง</th>
-                            <th class="p-4 border-b text-center">Diameter (mm)</th>
-                            <th class="p-4 border-b">สถานะ</th>
-                            <th class="p-4 border-b text-center">วันที่ส่งซ่อม - วันที่กลับ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="scope-table-body" class="divide-y divide-gray-200">
-                        <!-- Data will be inserted here -->
-                    </tbody>
-                </table>
-            </div>
+        <!-- รายการกล้อง: แบบ Card ในมือถือ / แบบ Table ในคอม -->
+        <div id="scope-list-container" class="grid grid-cols-1 gap-4">
+            <!-- ข้อมูลจะถูกฉีดเข้าที่นี่โดย JavaScript -->
+            <div class="text-center py-10 text-gray-400">กำลังดึงข้อมูลสถานะกล้อง...</div>
         </div>
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbyxZ74OUdMi4pFn8DC-GtK80IS0XcIbot3Mwr6Va9SrCrUNB7iyhEC606pL0q4K9p5F/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxL8VnqCWO-3YuNsMrz5pJ012rLTKTD1gQA2zu8pgENMDQ34YHI8Diyh9NAoVEjskM/exec';
 
         async function fetchScopes() {
             try {
                 const response = await fetch(API_URL);
                 const data = await response.json();
-                renderDashboard(data);
+                renderMobileFriendly(data);
             } catch (error) {
-                console.error('Error fetching data:', error);
-                document.getElementById('update-time').innerText = 'เกิดข้อผิดพลาดในการโหลดข้อมูล';
+                document.getElementById('update-time').innerText = 'Error';
             }
         }
 
-        function renderDashboard(data) {
-            const tableBody = document.getElementById('scope-table-body');
-            const totalCount = document.getElementById('total-count');
+        function renderMobileFriendly(data) {
+            const container = document.getElementById('scope-list-container');
             const readyCount = document.getElementById('ready-count');
             const repairCount = document.getElementById('repair-count');
             const updateTime = document.getElementById('update-time');
 
-            tableBody.innerHTML = '';
+            container.innerHTML = '';
             let ready = 0;
             let repair = 0;
 
             data.scopes.forEach(scope => {
                 const isRepair = scope.status.includes('ซ่อม') || scope.status.includes('ชำรุด');
                 if (isRepair) repair++; else ready++;
-
                 const statusClass = isRepair ? 'status-repair' : 'status-ready';
 
-                tableBody.innerHTML += `
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="p-4 font-medium">${scope.type}</td>
-                        <td class="p-4 text-blue-600 font-semibold">${scope.code}</td>
-                        <td class="p-4 text-center text-gray-500">${scope.diameter || '-'}</td>
-                        <td class="p-4">
-                            <span class="px-3 py-1 rounded-full text-xs font-semibold ${statusClass}">
-                                ${scope.status}
-                            </span>
-                        </td>
-                        <td class="p-4 text-center text-sm text-gray-600">
-                            ${scope.sentDate} - ${scope.returnDate}
-                        </td>
-                    </tr>
+                // สร้าง Card สำหรับแต่ละกล้อง
+                container.innerHTML += `
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 flex flex-col gap-2 relative overflow-hidden">
+                        <!-- สถานะ (Badge) -->
+                        <div class="absolute top-4 right-4 text-[10px] font-bold px-3 py-1 rounded-full ${statusClass}">
+                            ${scope.status}
+                        </div>
+
+                        <!-- ข้อมูลหลัก -->
+                        <div class="flex flex-col">
+                            <span class="text-blue-700 font-bold text-xl">${scope.code}</span>
+                            <span class="text-gray-800 font-semibold text-sm">${scope.type}</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-gray-50">
+                            <div>
+                                <p class="text-[10px] text-gray-400 uppercase">Serial Number</p>
+                                <p class="text-xs font-mono text-gray-600">${scope.serial || '-'}</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-gray-400 uppercase">Diameter</p>
+                                <p class="text-xs text-gray-600">${scope.diameter || '-'} mm</p>
+                            </div>
+                        </div>
+
+                        ${isRepair ? `
+                        <div class="mt-2 p-2 bg-gray-50 rounded-lg">
+                            <p class="text-[10px] text-gray-500 italic">กำหนดคืน: ${scope.returnDate}</p>
+                        </div>
+                        ` : ''}
+                    </div>
                 `;
             });
 
-            totalCount.innerText = data.total;
             readyCount.innerText = ready;
             repairCount.innerText = repair;
-            updateTime.innerText = 'อัปเดตล่าสุด: ' + data.updated;
+            updateTime.innerText = 'อัปเดต: ' + data.updated.split(' ')[1]; // โชว์แค่เวลาให้ประหยัดที่
         }
 
-        // โหลดข้อมูลครั้งแรก และตั้งเวลาให้อัปเดตทุก 5 นาที
         fetchScopes();
-        setInterval(fetchScopes, 300000);
+        setInterval(fetchScopes, 60000); // อัปเดตทุก 1 นาที
     </script>
 </body>
 </html>
