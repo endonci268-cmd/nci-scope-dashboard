@@ -1,70 +1,121 @@
-<script>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NCI Endoscope Real-time Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Kanit', sans-serif; }
+        .status-ready { background-color: #d1fae5; color: #065f46; }
+        .status-repair { background-color: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
 
-const API_URL = "https://script.google.com/macros/s/AKfycbyBfC-I98MMD9_Kzsj8YRlYUG-tNz--SdRWxxah-5WJTklYzPuEH7PU1wITSkY4XrYs/exec";
+    <nav class="bg-blue-600 p-4 text-white shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">NCI SCOPETAGLINE V.2</h1>
+            <span id="update-time" class="text-sm">กำลังโหลดข้อมูล...</span>
+        </div>
+    </nav>
 
-function loadData(){
+    <div class="container mx-auto p-4 md:p-8">
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
+                <p class="text-gray-500 text-sm">กล้องทั้งหมด</p>
+                <h2 id="total-count" class="text-3xl font-bold">0</h2>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+                <p class="text-gray-500 text-sm">พร้อมใช้งาน</p>
+                <h2 id="ready-count" class="text-3xl font-bold text-green-600">0</h2>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500">
+                <p class="text-gray-500 text-sm">ส่งซ่อม/ไม่พร้อมใช้</p>
+                <h2 id="repair-count" class="text-3xl font-bold text-red-600">0</h2>
+            </div>
+        </div>
 
-fetch(API_URL, {
-  method: "GET",
-  cache: "no-store"
-})
-.then(res => res.json())
-.then(res => {
+        <!-- Data Table -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-100 text-gray-700">
+                        <tr>
+                            <th class="p-4 border-b">ประเภทกล้อง</th>
+                            <th class="p-4 border-b">รหัสกล้อง</th>
+                            <th class="p-4 border-b text-center">Diameter (mm)</th>
+                            <th class="p-4 border-b">สถานะ</th>
+                            <th class="p-4 border-b text-center">วันที่ส่งซ่อม - วันที่กลับ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scope-table-body" class="divide-y divide-gray-200">
+                        <!-- Data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-  console.log("DATA:", res); // debug
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbyxZ74OUdMi4pFn8DC-GtK80IS0XcIbot3Mwr6Va9SrCrUNB7iyhEC606pL0q4K9p5F/exec';
 
-  const data = res.scopes || [];
+        async function fetchScopes() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                renderDashboard(data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.getElementById('update-time').innerText = 'เกิดข้อผิดพลาดในการโหลดข้อมูล';
+            }
+        }
 
-  // 🔥 แก้ปัญหา emoji แล้ว
-  const ready = data.filter(s => (s.status || "").includes("พร้อม")).length;
-  const repair = data.filter(s => (s.status || "").includes("ซ่อม")).length;
-  const inactive = data.filter(s => (s.status || "").includes("งด")).length;
+        function renderDashboard(data) {
+            const tableBody = document.getElementById('scope-table-body');
+            const totalCount = document.getElementById('total-count');
+            const readyCount = document.getElementById('ready-count');
+            const repairCount = document.getElementById('repair-count');
+            const updateTime = document.getElementById('update-time');
 
-  document.getElementById("ready").innerHTML =
-    "🟢 พร้อมใช้งาน<br>" + ready;
+            tableBody.innerHTML = '';
+            let ready = 0;
+            let repair = 0;
 
-  document.getElementById("repair").innerHTML =
-    "🔴 ส่งซ่อม<br>" + repair;
+            data.scopes.forEach(scope => {
+                const isRepair = scope.status.includes('ซ่อม') || scope.status.includes('ชำรุด');
+                if (isRepair) repair++; else ready++;
 
-  document.getElementById("inactive").innerHTML =
-    "🟡 งดใช้งาน<br>" + inactive;
+                const statusClass = isRepair ? 'status-repair' : 'status-ready';
 
-  document.getElementById("info").innerHTML =
-    "📊 " + (res.total || data.length) + " รายการ • 🕒 " + (res.updated || "-");
+                tableBody.innerHTML += `
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="p-4 font-medium">${scope.type}</td>
+                        <td class="p-4 text-blue-600 font-semibold">${scope.code}</td>
+                        <td class="p-4 text-center text-gray-500">${scope.diameter || '-'}</td>
+                        <td class="p-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold ${statusClass}">
+                                ${scope.status}
+                            </span>
+                        </td>
+                        <td class="p-4 text-center text-sm text-gray-600">
+                            ${scope.sentDate} - ${scope.returnDate}
+                        </td>
+                    </tr>
+                `;
+            });
 
-  render(data);
+            totalCount.innerText = data.total;
+            readyCount.innerText = ready;
+            repairCount.innerText = repair;
+            updateTime.innerText = 'อัปเดตล่าสุด: ' + data.updated;
+        }
 
-})
-.catch(err=>{
-  console.error("ERROR:", err);
-  document.getElementById("info").innerHTML = "❌ โหลดข้อมูลไม่ได้";
-});
-
-}
-
-function render(data){
-
-  let html = "";
-
-  data.forEach(s => {
-
-    html += `
-      <div class="card">
-        <div class="code">${s.code}</div>
-        <div class="serial">SN: ${s.serial || "-"}</div>
-        <div class="sub">${s.brand} | ${s.type}</div>
-        <div class="status">${s.status}</div>
-      </div>
-    `;
-  });
-
-  document.getElementById("list").innerHTML = html;
-}
-
-// 🔥 โหลดครั้งแรก
-loadData();
-
-// 🔥 refresh ทุก 5 วิ
-setInterval(loadData, 5000);
-
-</script>
+        // โหลดข้อมูลครั้งแรก และตั้งเวลาให้อัปเดตทุก 5 นาที
+        fetchScopes();
+        setInterval(fetchScopes, 300000);
+    </script>
+</body>
+</html>
