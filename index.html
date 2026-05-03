@@ -75,8 +75,9 @@ body{
 
 <script>
 
-// 🔴 ใส่ URL ของคุณตรงนี้
 const API_URL = "https://script.google.com/macros/s/AKfycbzFQfa9pe76TWri5f_5LPioMZ0Zq--bqzQ8cnANFs4KYUdgzh_ygnyIwEh7cRhLSLpW/exec";
+
+function loadData(){
 
 fetch(API_URL)
 .then(res => res.json())
@@ -84,7 +85,7 @@ fetch(API_URL)
 
   const data = res.scopes || [];
 
-  // 🔥 summary
+  // 🔥 นับใหม่ทุกครั้ง
   document.getElementById("ready").innerHTML =
     "🟢 พร้อมใช้งาน<br>" + data.filter(s=>s.status==="พร้อมใช้งาน").length;
 
@@ -102,33 +103,20 @@ fetch(API_URL)
 })
 .catch(err=>{
   document.getElementById("info").innerHTML = "❌ โหลดข้อมูลไม่สำเร็จ";
-  console.error(err);
 });
 
-function render(data){
+}
 
+function render(data){
   let html = "";
 
   data.forEach(s => {
-
-    let color = {
-      "พร้อมใช้งาน":"#22c55e",
-      "ส่งซ่อม":"#ef4444",
-      "งดใช้งาน":"#f59e0b"
-    }[s.status] || "#ccc";
-
     html += `
-      <div class="card" onclick="toggle(this)">
+      <div class="card">
         <div class="code">${s.code}</div>
         <div class="serial">SN: ${s.serial}</div>
         <div class="sub">${s.brand} | ${s.type}</div>
-        <div class="status" style="color:${color}">${s.status}</div>
-
-        <div class="detail">
-          📏 ${s.diameter} mm<br>
-          📤 ${s.sentDate || "-"}<br>
-          📥 ${s.returnDate || "-"}
-        </div>
+        <div class="status">${s.status}</div>
       </div>
     `;
   });
@@ -136,10 +124,11 @@ function render(data){
   document.getElementById("list").innerHTML = html;
 }
 
-function toggle(el){
-  const d = el.querySelector(".detail");
-  d.style.display = d.style.display === "block" ? "none" : "block";
-}
+// 🔥 โหลดครั้งแรก
+loadData();
+
+// 🔥 รีเฟรชทุก 5 วินาที
+setInterval(loadData, 5000);
 
 </script>
 
