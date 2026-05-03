@@ -84,10 +84,11 @@ body{
 
 <div class="container">
 
+<!-- 🔥 แถบสรุป -->
 <div class="summary">
-  <div class="box green" id="ready">0</div>
-  <div class="box yellow" id="inactive">0</div>
-  <div class="box red" id="repair">0</div>
+  <div class="box green" id="ready">🟢 พร้อมใช้งาน<br>0</div>
+  <div class="box yellow" id="inactive">🟡 งดใช้งาน<br>0</div>
+  <div class="box red" id="repair">🔴 ส่งซ่อม<br>0</div>
 </div>
 
 <div id="info" class="top"></div>
@@ -103,7 +104,7 @@ fetch(API_URL)
 .then(res => res.json())
 .then(res => {
 
-  let data = res.scopes;
+  const data = res.scopes;
 
   // 🔥 นับจำนวน
   let ready = data.filter(s=>s.status==="พร้อมใช้งาน").length;
@@ -119,6 +120,10 @@ fetch(API_URL)
 
   render(data);
 
+})
+.catch(err=>{
+  document.getElementById("info").innerHTML = "❌ โหลดข้อมูลไม่สำเร็จ";
+  console.error(err);
 });
 
 function render(data){
