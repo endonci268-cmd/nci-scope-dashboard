@@ -85,18 +85,17 @@ fetch(API_URL)
 
   const data = res.scopes || [];
 
-  // 🔥 นับใหม่ทุกครั้ง
-  document.getElementById("ready").innerHTML =
-    "🟢 พร้อมใช้งาน<br>" + data.filter(s=>s.status==="พร้อมใช้งาน").length;
+  const data = res.scopes || [];
 
-  document.getElementById("repair").innerHTML =
-    "🔴 ส่งซ่อม<br>" + data.filter(s=>s.status==="ส่งซ่อม").length;
+// 🔥 นับใหม่ (แก้ตรงนี้เท่านั้น)
+document.getElementById("ready").innerHTML =
+  "🟢 พร้อมใช้งาน<br>" + data.filter(s => (s.status || "").includes("พร้อมใช้งาน")).length;
 
-  document.getElementById("inactive").innerHTML =
-    "🟡 งดใช้งาน<br>" + data.filter(s=>s.status==="งดใช้งาน").length;
+document.getElementById("repair").innerHTML =
+  "🔴 ส่งซ่อม<br>" + data.filter(s => (s.status || "").includes("ส่งซ่อม")).length;
 
-  document.getElementById("info").innerHTML =
-    "📊 " + (res.total || data.length) + " รายการ • 🕒 " + (res.updated || "-");
+document.getElementById("inactive").innerHTML =
+  "🟡 งดใช้งาน<br>" + data.filter(s => (s.status || "").includes("งดใช้งาน")).length;
 
   render(data);
 
