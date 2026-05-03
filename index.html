@@ -22,9 +22,28 @@ body{
   padding:15px;
 }
 
+.summary{
+  display:flex;
+  gap:10px;
+  margin-bottom:15px;
+}
+
+.box{
+  flex:1;
+  border-radius:16px;
+  padding:10px;
+  text-align:center;
+  font-size:13px;
+  font-weight:600;
+}
+
+.green{background:#22c55e;}
+.yellow{background:#f59e0b;}
+.red{background:#ef4444;}
+
 .top{
   margin-bottom:10px;
-  font-size:13px;
+  font-size:12px;
   opacity:0.9;
 }
 
@@ -34,11 +53,6 @@ body{
   border-radius:20px;
   padding:15px;
   margin-bottom:12px;
-  transition:0.2s;
-}
-
-.card:active{
-  transform:scale(0.97);
 }
 
 .code{
@@ -60,7 +74,6 @@ body{
   margin-top:10px;
   font-size:13px;
   display:none;
-  opacity:0.9;
 }
 </style>
 </head>
@@ -71,6 +84,12 @@ body{
 
 <div class="container">
 
+<div class="summary">
+  <div class="box green" id="ready">0</div>
+  <div class="box yellow" id="inactive">0</div>
+  <div class="box red" id="repair">0</div>
+</div>
+
 <div id="info" class="top"></div>
 <div id="list"></div>
 
@@ -80,50 +99,43 @@ body{
 
 const API_URL = "https://script.google.com/macros/s/AKfycbyAV--2jJXh7ppFsTJhcyxEmSVUJnyC_LwD91UrsBc1MGW1qPCYuPwCWCYfmYlb3nX7/exec";
 
-let allData = [];
-
-// 🔷 อ่าน parameter จาก QR (?code=SC001)
-function getParam(name){
-  const url = new URL(window.location.href);
-  return url.searchParams.get(name);
-}
-
 fetch(API_URL)
 .then(res => res.json())
 .then(res => {
 
-  allData = res.scopes;
+  let data = res.scopes;
 
-  // แสดงจำนวน + เวลา
+  // 🔥 นับจำนวน
+  let ready = data.filter(s=>s.status==="พร้อมใช้งาน").length;
+  let repair = data.filter(s=>s.status==="ส่งซ่อม").length;
+  let inactive = data.filter(s=>s.status==="งดใช้งาน").length;
+
+  document.getElementById("ready").innerHTML = "🟢 พร้อมใช้งาน<br>"+ready;
+  document.getElementById("repair").innerHTML = "🔴 ส่งซ่อม<br>"+repair;
+  document.getElementById("inactive").innerHTML = "🟡 งดใช้งาน<br>"+inactive;
+
   document.getElementById("info").innerHTML =
     "📊 " + res.total + " รายการ • 🕒 " + res.updated;
 
-  const code = getParam("code");
-
-  if(code){
-    render(allData.filter(s => s.code === code));
-  }else{
-    render(allData);
-  }
+  render(data);
 
 });
 
 function render(data){
 
-  // 🔥 เรียงตาม Serial
   data.sort((a,b)=>a.serial.localeCompare(b.serial));
 
-  let html = "";
+  let html="";
 
-  data.forEach(s => {
+  data.forEach(s=>{
 
-    let color = {
+    let color={
       "พร้อมใช้งาน":"#22c55e",
       "ส่งซ่อม":"#ef4444",
       "งดใช้งาน":"#f59e0b"
-    }[s.status] || "#ddd";
+    }[s.status]||"#ddd";
 
-    html += `
+    html+=`
       <div class="card" onclick="toggle(this)">
         <div class="code">${s.code}</div>
 
@@ -143,12 +155,12 @@ function render(data){
     `;
   });
 
-  document.getElementById("list").innerHTML = html;
+  document.getElementById("list").innerHTML=html;
 }
 
 function toggle(el){
-  let d = el.querySelector(".detail");
-  d.style.display = d.style.display === "block" ? "none" : "block";
+  let d=el.querySelector(".detail");
+  d.style.display=d.style.display==="block"?"none":"block";
 }
 
 </script>
