@@ -22,13 +22,10 @@ body{
   padding:15px;
 }
 
-.search{
-  width:100%;
-  padding:12px;
-  border-radius:12px;
-  border:none;
-  margin-bottom:15px;
-  font-size:14px;
+.top{
+  margin-bottom:10px;
+  font-size:13px;
+  opacity:0.9;
 }
 
 .card{
@@ -51,7 +48,7 @@ body{
 
 .sub{
   font-size:13px;
-  opacity:0.8;
+  opacity:0.85;
 }
 
 .status{
@@ -65,12 +62,6 @@ body{
   display:none;
   opacity:0.9;
 }
-
-.top{
-  margin-bottom:10px;
-  font-size:13px;
-  opacity:0.9;
-}
 </style>
 </head>
 
@@ -81,21 +72,17 @@ body{
 <div class="container">
 
 <div id="info" class="top"></div>
-
-<input class="search" placeholder="ค้นหารหัสกล้อง..." oninput="search(this.value)">
-
 <div id="list"></div>
 
 </div>
 
 <script>
 
-// 🔥 ใส่ API ของคุณตรงนี้
 const API_URL = "https://script.google.com/macros/s/AKfycbyAV--2jJXh7ppFsTJhcyxEmSVUJnyC_LwD91UrsBc1MGW1qPCYuPwCWCYfmYlb3nX7/exec";
 
 let allData = [];
 
-// 🔷 อ่าน parameter จาก URL (ใช้กับ QR)
+// 🔷 อ่าน parameter จาก QR (?code=SC001)
 function getParam(name){
   const url = new URL(window.location.href);
   return url.searchParams.get(name);
@@ -111,12 +98,10 @@ fetch(API_URL)
   document.getElementById("info").innerHTML =
     "📊 " + res.total + " รายการ • 🕒 " + res.updated;
 
-  // 🔥 ถ้ามี QR filter
   const code = getParam("code");
 
   if(code){
-    const filtered = allData.filter(s => s.code === code);
-    render(filtered);
+    render(allData.filter(s => s.code === code));
   }else{
     render(allData);
   }
@@ -124,6 +109,10 @@ fetch(API_URL)
 });
 
 function render(data){
+
+  // 🔥 เรียงตาม Serial
+  data.sort((a,b)=>a.serial.localeCompare(b.serial));
+
   let html = "";
 
   data.forEach(s => {
@@ -137,6 +126,8 @@ function render(data){
     html += `
       <div class="card" onclick="toggle(this)">
         <div class="code">${s.code}</div>
+
+        <div class="sub">SN ${s.serial}</div>
         <div class="sub">${s.brand} | ${s.type}</div>
 
         <div class="status" style="color:${color}">
@@ -144,8 +135,7 @@ function render(data){
         </div>
 
         <div class="detail">
-          SN ${s.serial}<br>
-          ${s.diameter} mm<br>
+          📏 ${s.diameter} mm<br>
           📤 ${s.sentDate || "-"}<br>
           📥 ${s.returnDate || "-"}
         </div>
@@ -159,11 +149,6 @@ function render(data){
 function toggle(el){
   let d = el.querySelector(".detail");
   d.style.display = d.style.display === "block" ? "none" : "block";
-}
-
-function search(q){
-  q = q.toLowerCase();
-  render(allData.filter(s => s.code.toLowerCase().includes(q)));
 }
 
 </script>
