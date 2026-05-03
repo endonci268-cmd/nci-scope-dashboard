@@ -7,7 +7,7 @@
 <style>
 body{
   margin:0;
-  font-family:-apple-system, BlinkMacSystemFont;
+  font-family:-apple-system;
   background:linear-gradient(#0ea5e9,#1e3a8a);
   color:white;
 }
@@ -40,12 +40,6 @@ body{
 .green{background:#22c55e;}
 .yellow{background:#f59e0b;}
 .red{background:#ef4444;}
-
-.top{
-  margin-bottom:10px;
-  font-size:12px;
-  opacity:0.9;
-}
 
 .card{
   backdrop-filter: blur(20px);
@@ -84,14 +78,13 @@ body{
 
 <div class="container">
 
-<!-- 🔥 แถบสรุป -->
 <div class="summary">
-  <div class="box green" id="ready">🟢 พร้อมใช้งาน<br>0</div>
-  <div class="box yellow" id="inactive">🟡 งดใช้งาน<br>0</div>
-  <div class="box red" id="repair">🔴 ส่งซ่อม<br>0</div>
+  <div class="box green" id="ready">0</div>
+  <div class="box yellow" id="inactive">0</div>
+  <div class="box red" id="repair">0</div>
 </div>
 
-<div id="info" class="top"></div>
+<div id="info"></div>
 <div id="list"></div>
 
 </div>
@@ -106,10 +99,10 @@ fetch(API_URL)
 
   const data = res.scopes;
 
-  // 🔥 นับจำนวน
-  let ready = data.filter(s=>s.status==="พร้อมใช้งาน").length;
-  let repair = data.filter(s=>s.status==="ส่งซ่อม").length;
-  let inactive = data.filter(s=>s.status==="งดใช้งาน").length;
+  // 🔥 นับสถานะ
+  const ready = data.filter(s=>s.status==="พร้อมใช้งาน").length;
+  const repair = data.filter(s=>s.status==="ส่งซ่อม").length;
+  const inactive = data.filter(s=>s.status==="งดใช้งาน").length;
 
   document.getElementById("ready").innerHTML = "🟢 พร้อมใช้งาน<br>"+ready;
   document.getElementById("repair").innerHTML = "🔴 ส่งซ่อม<br>"+repair;
@@ -120,10 +113,6 @@ fetch(API_URL)
 
   render(data);
 
-})
-.catch(err=>{
-  document.getElementById("info").innerHTML = "❌ โหลดข้อมูลไม่สำเร็จ";
-  console.error(err);
 });
 
 function render(data){
@@ -138,7 +127,7 @@ function render(data){
       "พร้อมใช้งาน":"#22c55e",
       "ส่งซ่อม":"#ef4444",
       "งดใช้งาน":"#f59e0b"
-    }[s.status]||"#ddd";
+    }[s.status];
 
     html+=`
       <div class="card" onclick="toggle(this)">
@@ -160,12 +149,12 @@ function render(data){
     `;
   });
 
-  document.getElementById("list").innerHTML=html;
+  document.getElementById("list").innerHTML = html;
 }
 
 function toggle(el){
   let d=el.querySelector(".detail");
-  d.style.display=d.style.display==="block"?"none":"block";
+  d.style.display = d.style.display==="block"?"none":"block";
 }
 
 </script>
