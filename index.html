@@ -14,7 +14,7 @@ body{
 
 .header{
   padding:20px;
-  font-size:20px;
+  font-size:22px;
   font-weight:600;
 }
 
@@ -31,15 +31,20 @@ body{
 .box{
   flex:1;
   border-radius:16px;
-  padding:10px;
+  padding:12px;
   text-align:center;
-  font-size:13px;
+  font-size:14px;
   font-weight:600;
 }
 
 .green{background:#22c55e;}
 .yellow{background:#f59e0b;}
 .red{background:#ef4444;}
+
+.top{
+  margin-bottom:15px;
+  font-size:13px;
+}
 
 .card{
   backdrop-filter: blur(20px);
@@ -54,20 +59,20 @@ body{
   font-weight:600;
 }
 
+.serial{
+  font-size:14px;
+  font-weight:600;
+  margin-top:4px;
+}
+
 .sub{
   font-size:13px;
-  opacity:0.85;
+  opacity:0.9;
 }
 
 .status{
   margin-top:6px;
   font-weight:600;
-}
-
-.detail{
-  margin-top:10px;
-  font-size:13px;
-  display:none;
 }
 </style>
 </head>
@@ -79,25 +84,30 @@ body{
 <div class="container">
 
 <div class="summary">
-  <div class="box green" id="ready">0</div>
-  <div class="box yellow" id="inactive">0</div>
-  <div class="box red" id="repair">0</div>
+  <div class="box green" id="ready">🟢 พร้อมใช้งาน<br>0</div>
+  <div class="box yellow" id="inactive">🟡 งดใช้งาน<br>0</div>
+  <div class="box red" id="repair">🔴 ส่งซ่อม<br>0</div>
 </div>
 
-<div id="info"></div>
+<div id="info" class="top"></div>
+
 <div id="list"></div>
 
 </div>
 
 <script>
 
-const API_URL = "https://script.google.com/macros/s/AKfycbyiQKIGmpO1SAeffmHFZeeeP8XdkhhbnO_KlfgjMQK2KmI_VC_JCX0oFFIGndjDZsgz/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyAV--2jJXh7ppFsTJhcyxEmSVUJnyC_LwD91UrsBc1MGW1qPCYuPwCWCYfmYlb3nX7/exec";
+
+window.onload = function(){
 
 fetch(API_URL)
 .then(res => res.json())
 .then(res => {
 
-  const data = res.scopes;
+  const data = res.scopes || [];
+
+  console.log("DATA:", data); // debug
 
   // 🔥 นับสถานะ
   const ready = data.filter(s=>s.status==="พร้อมใช้งาน").length;
@@ -109,52 +119,46 @@ fetch(API_URL)
   document.getElementById("inactive").innerHTML = "🟡 งดใช้งาน<br>"+inactive;
 
   document.getElementById("info").innerHTML =
-    "📊 " + res.total + " รายการ • 🕒 " + res.updated;
+    "📊 " + (res.total || data.length) + " รายการ • 🕒 " + (res.updated || "-");
 
   render(data);
 
+})
+.catch(err=>{
+  console.error(err);
+  document.getElementById("info").innerHTML = "❌ โหลดข้อมูลไม่สำเร็จ";
 });
+
+};
 
 function render(data){
 
-  data.sort((a,b)=>a.serial.localeCompare(b.serial));
+  let html = "";
 
-  let html="";
+  data.forEach(s => {
 
-  data.forEach(s=>{
-
-    let color={
+    let color = {
       "พร้อมใช้งาน":"#22c55e",
       "ส่งซ่อม":"#ef4444",
       "งดใช้งาน":"#f59e0b"
-    }[s.status];
+    }[s.status] || "#ddd";
 
-    html+=`
-      <div class="card" onclick="toggle(this)">
-        <div class="code">${s.code}</div>
+    html += `
+      <div class="card">
+        <div class="code">${s.code || "-"}</div>
 
-        <div class="sub">SN ${s.serial}</div>
-        <div class="sub">${s.brand} | ${s.type}</div>
+        <div class="serial">SN: ${s.serial || "-"}</div>
+
+        <div class="sub">${s.brand || "-"} | ${s.type || "-"}</div>
 
         <div class="status" style="color:${color}">
-          ${s.status}
-        </div>
-
-        <div class="detail">
-          📏 ${s.diameter} mm<br>
-          📤 ${s.sentDate || "-"}<br>
-          📥 ${s.returnDate || "-"}
+          ${s.status || "-"}
         </div>
       </div>
     `;
   });
 
   document.getElementById("list").innerHTML = html;
-}
-
-function toggle(el){
-  let d=el.querySelector(".detail");
-  d.style.display = d.style.display==="block"?"none":"block";
 }
 
 </script>
