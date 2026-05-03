@@ -1,6 +1,53 @@
 <!DOCTYPE html>
 <html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NCI Scope</title>
+
+<style>
+body{
+  font-family:-apple-system, BlinkMacSystemFont;
+  background:#f8fafc;
+  padding:20px;
+}
+
+.card{
+  background:white;
+  border-radius:16px;
+  padding:15px;
+  margin-bottom:10px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+</style>
+</head>
+
 <body>
+
 <h2>NCI Scope Dashboard</h2>
+
+<div id="list"></div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbyAV--2jJXh7ppFsTJhcyxEmSVUJnyC_LwD91UrsBc1MGW1qPCYuPwCWCYfmYlb3nX7/exec";
+
+fetch(API_URL)
+.then(res => res.json())
+.then(res => {
+  let html = "";
+
+  res.scopes.forEach(s => {
+    html += `
+      <div class="card">
+        <b>${s.code}</b><br>
+        ${s.brand} | ${s.type}<br>
+        <b>${s.status}</b>
+      </div>
+    `;
+  });
+
+  document.getElementById("list").innerHTML = html;
+});
+</script>
+
 </body>
 </html>
