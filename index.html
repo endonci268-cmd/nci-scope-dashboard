@@ -6,47 +6,166 @@
 
 <style>
 body{
+  margin:0;
   font-family:-apple-system, BlinkMacSystemFont;
-  background:#f8fafc;
+  background:linear-gradient(#0ea5e9,#1e3a8a);
+  color:white;
+}
+
+.header{
   padding:20px;
+  font-size:20px;
+  font-weight:600;
+}
+
+.container{
+  padding:15px;
+}
+
+.search{
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  border:none;
+  margin-bottom:15px;
+  font-size:14px;
 }
 
 .card{
-  background:white;
-  border-radius:16px;
+  backdrop-filter: blur(20px);
+  background:rgba(255,255,255,0.15);
+  border-radius:20px;
   padding:15px;
+  margin-bottom:12px;
+  transition:0.2s;
+}
+
+.card:active{
+  transform:scale(0.97);
+}
+
+.code{
+  font-size:18px;
+  font-weight:600;
+}
+
+.sub{
+  font-size:13px;
+  opacity:0.8;
+}
+
+.status{
+  margin-top:6px;
+  font-weight:600;
+}
+
+.detail{
+  margin-top:10px;
+  font-size:13px;
+  display:none;
+  opacity:0.9;
+}
+
+.top{
   margin-bottom:10px;
-  box-shadow:0 4px 10px rgba(0,0,0,0.1);
+  font-size:13px;
+  opacity:0.9;
 }
 </style>
 </head>
 
 <body>
 
-<h2>NCI Scope Dashboard</h2>
+<div class="header">NCI Scope</div>
+
+<div class="container">
+
+<div id="info" class="top"></div>
+
+<input class="search" placeholder="ค้นหารหัสกล้อง..." oninput="search(this.value)">
 
 <div id="list"></div>
 
+</div>
+
 <script>
+
+// 🔥 ใส่ API ของคุณตรงนี้
 const API_URL = "https://script.google.com/macros/s/AKfycbyAV--2jJXh7ppFsTJhcyxEmSVUJnyC_LwD91UrsBc1MGW1qPCYuPwCWCYfmYlb3nX7/exec";
+
+let allData = [];
+
+// 🔷 อ่าน parameter จาก URL (ใช้กับ QR)
+function getParam(name){
+  const url = new URL(window.location.href);
+  return url.searchParams.get(name);
+}
 
 fetch(API_URL)
 .then(res => res.json())
 .then(res => {
+
+  allData = res.scopes;
+
+  // แสดงจำนวน + เวลา
+  document.getElementById("info").innerHTML =
+    "📊 " + res.total + " รายการ • 🕒 " + res.updated;
+
+  // 🔥 ถ้ามี QR filter
+  const code = getParam("code");
+
+  if(code){
+    const filtered = allData.filter(s => s.code === code);
+    render(filtered);
+  }else{
+    render(allData);
+  }
+
+});
+
+function render(data){
   let html = "";
 
-  res.scopes.forEach(s => {
+  data.forEach(s => {
+
+    let color = {
+      "พร้อมใช้งาน":"#22c55e",
+      "ส่งซ่อม":"#ef4444",
+      "งดใช้งาน":"#f59e0b"
+    }[s.status] || "#ddd";
+
     html += `
-      <div class="card">
-        <b>${s.code}</b><br>
-        ${s.brand} | ${s.type}<br>
-        <b>${s.status}</b>
+      <div class="card" onclick="toggle(this)">
+        <div class="code">${s.code}</div>
+        <div class="sub">${s.brand} | ${s.type}</div>
+
+        <div class="status" style="color:${color}">
+          ${s.status}
+        </div>
+
+        <div class="detail">
+          SN ${s.serial}<br>
+          ${s.diameter} mm<br>
+          📤 ${s.sentDate || "-"}<br>
+          📥 ${s.returnDate || "-"}
+        </div>
       </div>
     `;
   });
 
   document.getElementById("list").innerHTML = html;
-});
+}
+
+function toggle(el){
+  let d = el.querySelector(".detail");
+  d.style.display = d.style.display === "block" ? "none" : "block";
+}
+
+function search(q){
+  q = q.toLowerCase();
+  render(allData.filter(s => s.code.toLowerCase().includes(q)));
+}
+
 </script>
 
 </body>
