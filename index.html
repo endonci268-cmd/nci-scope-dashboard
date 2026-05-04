@@ -15,7 +15,7 @@
 <body class="p-4 md:p-8">
 
     <div class="max-w-5xl mx-auto">
-        <!-- ส่วนหัวที่หายไป (Header) -->
+        <!-- Header -->
         <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-blue-900">NCI SCOPETAGLINE</h1>
@@ -43,7 +43,7 @@
         <!-- Search & Filters -->
         <div class="flex flex-col md:flex-row gap-4 mb-8">
             <div class="relative flex-grow">
-                <input type="text" id="search-input" placeholder="ค้นหารหัสกล้อง..." 
+                <input type="text" id="search-input" placeholder="ค้นหารหัสกล้อง หรือยี่ห้อ..." 
                     class="w-full p-3 pl-10 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-slate-700">
                 <svg class="w-5 h-5 absolute left-3 top-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </div>
@@ -105,7 +105,10 @@
 
         function renderUI() {
             const searchTerm = document.getElementById('search-input').value.toLowerCase();
-            let filtered = scopeData.filter(s => s.code.toLowerCase().includes(searchTerm));
+            let filtered = scopeData.filter(s => 
+                s.code.toLowerCase().includes(searchTerm) || 
+                (s.brand && s.brand.toLowerCase().includes(searchTerm))
+            );
 
             if (currentFilter === 'ready') filtered = filtered.filter(s => s.status.includes('พร้อม'));
             if (currentFilter === 'repair') filtered = filtered.filter(s => !s.status.includes('พร้อม'));
@@ -122,7 +125,13 @@
                     <div class="card bg-white p-5 rounded-2xl shadow-sm border border-slate-50">
                         <div class="flex justify-between items-start mb-3">
                             <div>
-                                <h3 class="text-lg font-bold text-slate-800">${scope.code}</h3>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <h3 class="text-lg font-bold text-slate-800">${scope.code}</h3>
+                                    <!-- ยี่ห้อที่เพิ่มกลับมา -->
+                                    <span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-bold uppercase tracking-tighter italic">
+                                        ${scope.brand || '-'}
+                                    </span>
+                                </div>
                                 <p class="text-[12px] text-slate-500 font-medium tracking-wide">${scope.type} • ${scope.diameter}mm</p>
                             </div>
                             <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${isReady ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}">
@@ -140,7 +149,7 @@
 
         document.getElementById('search-input').addEventListener('input', renderUI);
         fetchData();
-        setInterval(fetchData, 60000); // อัปเดตทุก 60 วินาที
+        setInterval(fetchData, 60000);
     </script>
 </body>
 </html>
