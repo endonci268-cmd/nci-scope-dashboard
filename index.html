@@ -2,97 +2,106 @@
     // 1. ลิงก์ API เดิมของรายการกล้อง
     const API_URL = "https://script.google.com/macros/s/AKfycbxL8VnqCWO-3YuNsMrz5pJ012rLTKTD1gQA2zu8pgENMDQ34YHI8Diyh9NAoVEjskM/exec";
     
-    // 2. ลิงก์ API ใหม่ของ Wash Log ที่พี่เพิ่งส่งมา
+    // 2. ลิงก์ API ใหม่ของ Wash Log
     const WASH_LOG_API = "https://script.google.com/macros/s/AKfycbxB2ytW3cYMOEs79yOx6drY4_2EN9EVxA9Hqa0hDszzaM1Ql3KnOu92RhVEUgqrcV1U/exec";
 
     let scopeData = [];
-    let usageStats = {}; // เก็บสถิติการล้าง
+    let usageStats = {}; 
     let currentFilter = 'all';
 
     async function fetchData() {
         try {
-            // ดึงข้อมูลพร้อมกันทั้ง 2 ลิงก์
+            // ดึงข้อมูลพร้อมกัน
             const [scopeRes, washRes] = await Promise.all([
-                fetch(API_URL),
-                fetch(WASH_LOG_API)
+                fetch(API_URL).then(res => res.json()),
+                fetch(WASH_LOG_API).then(res => res.json())
             ]);
 
-            const scopeJson = await scopeRes.json();
-            const washJson = await washRes.json();
-
-            if (scopeJson.scopes) {
-                scopeData = scopeJson.scopes;
-                usageStats = washJson.usageStats || {}; // เก็บจำนวนครั้งแยกตามรหัสกล้อง
+            if (scopeRes && scopeRes.scopes) {
+                scopeData = scopeRes.scopes;
+                usageStats = washRes.usageStats || {}; 
                 
                 updateStats();
                 renderUI();
                 
                 const now = new Date();
-                document.getElementById('last-update').innerText = `อัปเดตล่าสุด • ${now.toLocaleTimeString('th-TH')}`;
+                const lastUpdateElem = document.getElementById('last-update');
+                if(lastUpdateElem) lastUpdateElem.innerText = `อัปเดตล่าสุด • ${now.toLocaleTimeString('th-TH')}`;
             }
         } catch (error) {
-            console.error("Error:", error);
-            document.getElementById('last-update').innerText = "การเชื่อมต่อล้มเหลว";
+            console.error("Error Fetching:", error);
+            const lastUpdateElem = document.getElementById('last-update');
+            if(lastUpdateElem) lastUpdateElem.innerText = "การเชื่อมต่อล้มเหลว (Check API)";
         }
     }
 
     function updateStats() {
+        if (!scopeData.length) return;
         const total = scopeData.length;
-        const ready = scopeData.filter(s => s.status.includes('พร้อม')).length;
+        const ready = scopeData.filter(s => s.status && s.status.includes('พร้อม')).length;
         const repair = total - ready;
         const percent = total > 0 ? Math.round((ready / total) * 100) : 0;
 
-        document.getElementById('count-all').innerText = total;
-        document.getElementById('count-ready').innerText = ready;
-        document.getElementById('count-repair').innerText = repair;
-        document.getElementById('availability-percent').innerText = `${percent}%`;
-        document.getElementById('progress-fill').style.width = `${percent}%`;
+        // เช็คก่อนว่ามี ID เหล่านี้ใน HTML ไหมป้องกันหน้าจอขาว
+        if(document.getElementById('count-all')) document.getElementById('count-all').innerText = total;
+        if(document.getElementById('count-ready')) document.getElementById('count-ready').innerText = ready;
+        if(document.getElementById('count-repair')) document.getElementById('count-repair').innerText = repair;
+        if(document.getElementById('availability-percent')) document.getElementById('availability-percent').innerText = `${percent}%`;
+        if(document.getElementById('progress-fill')) document.getElementById('progress-fill').style.width = `${percent}%`;
     }
 
     function filterData(type) {
         currentFilter = type;
         renderUI();
-        // ปรับแต่งสีปุ่ม (เหมือนเดิม)
-        document.getElementById('btn-all').className = type === 'all' ? 'px-5 py-2.5 rounded-xl bg-blue-600 text-white shadow-md text-sm font-medium' : 'px-5 py-2.5 rounded-xl bg-white text-blue-600 border border-blue-50 shadow-sm text-sm';
-        document.getElementById('btn-ready').className = type === 'ready' ? 'px-5 py-2.5 rounded-xl bg-green-600 text-white shadow-md text-sm font-semibold' : 'px-5 py-2.5 rounded-xl bg-white text-green-600 border border-green-100 shadow-sm text-sm font-semibold';
-        document.getElementById('btn-repair').className = type === 'repair' ? 'px-5 py-2.5 rounded-xl bg-red-600 text-white shadow-md text-sm font-semibold' : 'px-5 py-2.5 rounded-xl bg-white text-red-600 border border-red-100 shadow-sm text-sm font-semibold';
+        // ปรับแต่งสีปุ่ม
+        const btnAll = document.getElementById('btn-all');
+        const btnReady = document.getElementById('btn-ready');
+        const btnRepair = document.getElementById('btn-repair');
+
+        if(btnAll) btnAll.className = type === 'all' ? 'px-5 py-2.5 rounded-xl bg-blue-600 text-white shadow-md text-sm font-medium' : 'px-5 py-2.5 rounded-xl bg-white text-blue-600 border border-blue-50 shadow-sm text-sm';
+        if(btnReady) btnReady.className = type === 'ready' ? 'px-5 py-2.5 rounded-xl bg-green-600 text-white shadow-md text-sm font-semibold' : 'px-5 py-2.5 rounded-xl bg-white text-green-600 border border-green-100 shadow-sm text-sm font-semibold';
+        if(btnRepair) btnRepair.className = type === 'repair' ? 'px-5 py-2.5 rounded-xl bg-red-600 text-white shadow-md text-sm font-semibold' : 'px-5 py-2.5 rounded-xl bg-white text-red-600 border border-red-100 shadow-sm text-sm font-semibold';
     }
 
     function renderUI() {
-        const searchTerm = document.getElementById('search-input').value.toLowerCase();
+        const searchInput = document.getElementById('search-input');
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
+        
         let filtered = scopeData.filter(s => 
-            s.code.toLowerCase().includes(searchTerm) || 
+            (s.code && s.code.toLowerCase().includes(searchTerm)) || 
             (s.brand && s.brand.toLowerCase().includes(searchTerm))
         );
 
-        if (currentFilter === 'ready') filtered = filtered.filter(s => s.status.includes('พร้อม'));
-        if (currentFilter === 'repair') filtered = filtered.filter(s => !s.status.includes('พร้อม'));
+        if (currentFilter === 'ready') filtered = filtered.filter(s => s.status && s.status.includes('พร้อม'));
+        if (currentFilter === 'repair') filtered = filtered.filter(s => s.status && !s.status.includes('พร้อม'));
 
         const grid = document.getElementById('scope-grid');
+        if (!grid) return;
+
         if (filtered.length === 0) {
             grid.innerHTML = `<p class="col-span-full text-center py-10 text-slate-400 font-light italic">ไม่พบข้อมูลที่ค้นหา</p>`;
             return;
         }
 
         grid.innerHTML = filtered.map(scope => {
-            const isReady = scope.status.includes('พร้อม');
-            // ดึงจำนวนครั้งจาก usageStats ถ้าไม่มีให้เป็น 0
+            const isReady = scope.status && scope.status.includes('พร้อม');
             const washCount = usageStats[scope.code] || 0; 
             
+            // ใช้ || '-' เพื่อป้องกันกรณีข้อมูลใน Sheet ว่างแล้วทำให้ code พัง
             return `
                 <div class="card bg-white p-5 rounded-2xl shadow-sm border border-slate-50">
                     <div class="flex justify-between items-start mb-3">
                         <div>
                             <div class="flex items-center gap-2 mb-1">
-                                <h3 class="text-lg font-bold text-slate-800">${scope.code}</h3>
+                                <h3 class="text-lg font-bold text-slate-800">${scope.code || 'N/A'}</h3>
                                 <span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-bold uppercase italic tracking-tighter">
                                     ${scope.brand || '-'}
                                 </span>
                             </div>
-                            <p class="text-[12px] text-slate-500 font-medium tracking-wide">${scope.type} • ${scope.diameter}mm</p>
+                            <p class="text-[12px] text-slate-500 font-medium tracking-wide">${scope.type || '-'} ${scope.diameter ? '• ' + scope.diameter + 'mm' : ''}</p>
                         </div>
                         <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${isReady ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}">
-                            ${scope.status}
+                            ${scope.status || 'Unknown'}
                         </span>
                     </div>
 
@@ -102,7 +111,7 @@
                     </div>
 
                     <div class="mt-2 pt-3 border-t border-slate-50 flex justify-between items-end">
-                        <span class="text-[11px] font-semibold text-slate-400">S/N: ${scope.serial}</span>
+                        <span class="text-[11px] font-semibold text-slate-400">S/N: ${scope.serial || '-'}</span>
                         ${!isReady ? `
                             <div class="text-right">
                                 <div class="bg-red-50 text-red-600 p-2 rounded-xl border border-red-100 font-bold leading-tight">
@@ -117,8 +126,9 @@
         }).join('');
     }
 
-    document.getElementById('search-input').addEventListener('input', renderUI);
+    const searchInput = document.getElementById('search-input');
+    if(searchInput) searchInput.addEventListener('input', renderUI);
+    
     fetchData();
-    // ตั้งเวลาอัปเดตทุก 1 นาที
     setInterval(fetchData, 60000);
 </script>
