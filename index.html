@@ -92,7 +92,7 @@
                     fetch(ACCESSORIES_API).then(r => r.json())
                 ]);
                 allScopes = sRes.scopes || sRes || [];
-                washData = wRes || washData;
+                washData = wRes || { usageStats: {}, recentWashes: [] };
                 accData = aRes || [];
                 updateUI();
                 renderAccFilters();
@@ -115,17 +115,24 @@
             if (currentFilter === 'ready') filteredScopes = filteredScopes.filter(s => (s.status||"").includes("พร้อม"));
             if (currentFilter === 'repair') filteredScopes = filteredScopes.filter(s => !(s.status||"").includes("พร้อม"));
 
+            // ล้างข้อมูลช่องว่างใน UsageStats เพื่อความแม่นยำ
+            const cleanUsage = {};
+            if (washData.usageStats) {
+                Object.keys(washData.usageStats).forEach(k => { cleanUsage[k.trim()] = washData.usageStats[k]; });
+            }
+
             document.getElementById('scope-list').innerHTML = filteredScopes.map(s => {
                 const isReady = (s.status||"").includes("พร้อม");
+                const sCode = (s.code || "").toString().trim();
                 return `
                 <div class="card-main p-6 md:p-8 animate-in flex flex-col h-full border border-slate-50">
                     <div class="flex justify-between items-start mb-4">
-                        <div><h3 class="text-3xl font-black text-slate-800 tracking-tighter leading-none mb-1 uppercase italic">${s.code}</h3><span class="px-2 py-0.5 bg-slate-100 text-slate-400 rounded text-[9px] font-black uppercase italic">${s.brand || 'FUJINON'}</span></div>
+                        <div><h3 class="text-3xl font-black text-slate-800 tracking-tighter leading-none mb-1 uppercase italic">${sCode}</h3><span class="px-2 py-0.5 bg-slate-100 text-slate-400 rounded text-[9px] font-black uppercase italic">${s.brand || 'FUJINON'}</span></div>
                         <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${isReady ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">● ${isReady ? 'พร้อมใช้งาน' : 'ส่งซ่อม'}</span>
                     </div>
                     <div class="usage-box flex justify-between items-center mb-6 shadow-sm">
                         <span class="text-[10px] font-black text-blue-400 uppercase italic">Usage History</span>
-                        <div class="flex items-baseline gap-1"><span class="text-4xl font-black text-blue-700">${washData.usageStats[s.code] || 0}</span><span class="text-[10px] font-bold text-blue-300">ครั้ง</span></div>
+                        <div class="flex items-baseline gap-1"><span class="text-4xl font-black text-blue-700">${cleanUsage[sCode] || 0}</span><span class="text-[10px] font-bold text-blue-300">ครั้ง</span></div>
                     </div>
                     <div class="mt-auto pt-6 border-t border-slate-50 flex justify-between items-center">
                         <div><p class="text-[8px] font-black text-slate-300 uppercase italic">Serial Number</p>
@@ -179,8 +186,7 @@
         function renderAccFilters() {
             const container = document.getElementById('acc-filter');
             const types = ['ทั้งหมด', ...new Set(accData.map(i => i.procedure).filter(p => p))];
-            container.innerHTML = types.map(t => `
-                <button onclick="filterAccType('${t}', this)" class="acc-tab whitespace-nowrap ${t === currentAccType ? 'bg-emerald-400 text-[#0b3d33]' : 'bg-[#144d44] text-emerald-200'}">${t}</button>`).join('');
+            container.innerHTML = types.map(t => `<button onclick="filterAccType('${t}', this)" class="acc-tab whitespace-nowrap ${t === currentAccType ? 'bg-emerald-400 text-[#0b3d33]' : 'bg-[#144d44] text-emerald-200'}">${t}</button>`).join('');
         }
 
         function filterAccType(type, btn) {
