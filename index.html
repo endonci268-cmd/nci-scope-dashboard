@@ -226,3 +226,31 @@
     </script>
 </body>
 </html>
+<script>
+    // --- โค้ดเดิมของพี่ (ข้อมูลกล้อง, ประวัติล้าง) ---
+    const API_URL = "URL ของชีทกล้อง";
+    const WASH_LOG_API = "URL ของชีทล้าง";
+    
+    async function fetchData() {
+        // ... (โค้ดดึงข้อมูลกล้องเดิม)
+    }
+
+    // --- ส่วนที่พี่ก๊อปมาใหม่ (Accessories Catalog) ---
+    const ACCESSORIES_API = "https://script.google.com/..."; // ลิงก์ที่พี่ส่งมา
+
+    async function loadAccessories() {
+        // ... (ฟังก์ชันที่ 2-4 ที่พี่ส่งมา)
+    }
+
+    function filterByProcedure(proc) {
+        // ... (ฟังก์ชันที่ 5)
+    }
+
+    // --- ส่วนการสั่งให้ทำงาน (บรรทัดสุดท้ายของ <script>) ---
+    fetchData();         // โหลดข้อมูลกล้อง
+    loadAccessories();   // โหลดข้อมูลอุปกรณ์ (เพิ่มตัวนี้เข้าไปครับ)
+    
+    // ตั้งเวลาให้โหลดใหม่ทุก 1 นาที (ถ้าต้องการ)
+    setInterval(fetchData, 60000);
+    setInterval(loadAccessories, 60000); 
+</script>
