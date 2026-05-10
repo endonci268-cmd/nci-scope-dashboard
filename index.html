@@ -15,6 +15,7 @@
         .animate-in { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .sticky-header { position: sticky; top: 0; z-index: 50; background: rgba(244, 247, 250, 0.95); backdrop-filter: blur(10px); }
+        .acc-tab { transition: all 0.2s; border-radius: 99px; font-size: 11px; font-weight: 600; padding: 6px 16px; border: 1px solid rgba(255,255,255,0.2); }
     </style>
 </head>
 <body class="p-3 sm:p-6 md:p-8">
@@ -33,25 +34,15 @@
         <div class="sticky-header py-2 space-y-3 mb-8">
             <input type="text" id="search-input" placeholder="ค้นหารหัสกล้อง หรือ S/N..." class="w-full p-4 rounded-2xl border-none shadow-lg focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700">
             <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                <button onclick="setFilter('all')" id="btn-all" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-slate-800 text-white font-bold text-xs shadow-md">ทั้งหมด (<span id="c-all">0</span>)</button>
-                <button onclick="setFilter('ready')" id="btn-ready" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-slate-500 font-bold text-xs border border-slate-200">พร้อมใช้ (<span id="c-ready">0</span>)</button>
-                <button onclick="setFilter('repair')" id="btn-repair" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-rose-500 font-bold text-xs border border-slate-200">ส่งซ่อม (<span id="c-repair">0</span>)</button>
+                <button onclick="setFilter('all')" id="btn-all" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-slate-800 text-white font-bold text-xs shadow-md uppercase">ทั้งหมด (<span id="c-all">0</span>)</button>
+                <button onclick="setFilter('ready')" id="btn-ready" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-slate-500 font-bold text-xs border border-slate-200 uppercase">พร้อมใช้ (<span id="c-ready">0</span>)</button>
+                <button onclick="setFilter('repair')" id="btn-repair" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-rose-500 font-bold text-xs border border-slate-200 uppercase">ส่งซ่อม (<span id="c-repair">0</span>)</button>
             </div>
         </div>
 
         <div id="scope-list" class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12"></div>
 
-        <div class="bg-[#0b3d33] text-white p-6 md:p-8 rounded-t-[2.5rem] shadow-xl">
-            <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-                <h2 class="text-2xl font-black italic uppercase tracking-tighter">Accessories Catalog</h2>
-                <div id="acc-filter" class="flex gap-2 overflow-x-auto no-scrollbar pb-1"></div>
-            </div>
-        </div>
-        <div class="bg-white rounded-b-[2.5rem] p-6 border-x border-b border-slate-200 mb-12 min-h-[300px]">
-            <div id="accessories-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-        </div>
-
-        <div class="card-main p-6 md:p-8 animate-in mb-20">
+        <div class="card-main p-6 md:p-8 animate-in mb-12">
             <div class="flex items-center gap-3 mb-6">
                 <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
                     <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -64,12 +55,28 @@
                         <tr class="text-[10px] text-slate-300 font-black uppercase border-b border-slate-50 italic">
                             <th class="pb-4 pr-4">วันเวลาที่ลงข้อมูล</th>
                             <th class="pb-4 pr-4 text-center">รหัสกล้อง</th>
-                            <th class="pb-4">Serial Number</th>
+                            <th class="pb-4">เลขซีเรียล (Serial Number)</th>
                         </tr>
                     </thead>
                     <tbody id="wash-log-body"></tbody>
                 </table>
             </div>
+        </div>
+
+        <div class="bg-[#0b3d33] text-white p-6 md:p-10 rounded-[2.5rem] shadow-xl mb-20 animate-in">
+            <div class="mb-6">
+                <h2 class="text-2xl font-black tracking-tight mb-2 uppercase">Accessories Catalog</h2>
+                <p class="text-emerald-200/60 text-xs font-medium">คลังอุปกรณ์สิ้นเปลืองสำหรับงาน Endoscopy</p>
+            </div>
+
+            <div class="relative mb-6">
+                <input type="text" id="acc-search" oninput="updateUI()" placeholder="ค้นหาชื่อ หรือ รหัสสินค้า..." class="w-full bg-[#144d44] border border-emerald-800/50 rounded-xl p-4 pl-12 text-sm text-emerald-100 placeholder-emerald-800 outline-none focus:ring-2 focus:ring-emerald-500">
+                <svg class="w-5 h-5 absolute left-4 top-4 text-emerald-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+
+            <div id="acc-filter" class="flex gap-2 overflow-x-auto no-scrollbar mb-6"></div>
+
+            <div id="accessories-list" class="space-y-4"></div>
         </div>
     </div>
 
@@ -78,7 +85,7 @@
         const WASH_LOG_API = "https://script.google.com/macros/s/AKfycbwUY36cqp5ns2dM5LgT0_MqmwH8k5riXXLDEb3JWo7kzfu81rumQ1opt5URik1H2fCC/exec";
         const ACCESSORIES_API = "https://script.google.com/macros/s/AKfycbz4NQzTP25uJWuiIfdewY3gzLLYyGD0KIgfIQIgVMTe3xGQqkCiq4cRl7Z2fCUPf-tF/exec";
 
-        let allScopes = [], washData = { usageStats: {}, recentWashes: [] }, accData = [], currentFilter = 'all';
+        let allScopes = [], washData = { usageStats: {}, recentWashes: [] }, accData = [], currentFilter = 'all', currentAccType = 'ทั้งหมด';
 
         async function init() {
             try {
@@ -97,6 +104,7 @@
 
         function updateUI() {
             const search = document.getElementById('search-input').value.toLowerCase().trim();
+            const accSearch = document.getElementById('acc-search').value.toLowerCase().trim();
             const list = document.getElementById('scope-list');
             
             const total = allScopes.length;
@@ -109,11 +117,12 @@
             document.getElementById('c-ready').innerText = readyCount;
             document.getElementById('c-repair').innerText = repairCount;
 
-            let filtered = allScopes.filter(s => (s.code||"").toLowerCase().includes(search) || (s.serial||"").toLowerCase().includes(search));
-            if (currentFilter === 'ready') filtered = filtered.filter(s => (s.status||"").includes("พร้อม"));
-            if (currentFilter === 'repair') filtered = filtered.filter(s => !(s.status||"").includes("พร้อม"));
+            // กรองรายการกล้อง
+            let filteredScopes = allScopes.filter(s => (s.code||"").toLowerCase().includes(search) || (s.serial||"").toLowerCase().includes(search));
+            if (currentFilter === 'ready') filteredScopes = filteredScopes.filter(s => (s.status||"").includes("พร้อม"));
+            if (currentFilter === 'repair') filteredScopes = filteredScopes.filter(s => !(s.status||"").includes("พร้อม"));
 
-            list.innerHTML = filtered.map(s => {
+            list.innerHTML = filteredScopes.map(s => {
                 const isReady = (s.status||"").includes("พร้อม");
                 const usage = washData.usageStats[s.code] || 0;
                 return `
@@ -127,9 +136,7 @@
                             ● ${isReady ? 'พร้อมใช้งาน' : 'ส่งซ่อม'}
                         </span>
                     </div>
-                    
                     <p class="text-xs font-bold text-slate-300 mb-6 uppercase">${s.type || 'SCOPE'} • ${s.diameter || ''}</p>
-                    
                     <div class="usage-box flex justify-between items-center mb-6 shadow-sm">
                         <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest italic leading-none">Usage History</span>
                         <div class="flex items-baseline gap-1">
@@ -137,66 +144,61 @@
                             <span class="text-[10px] font-bold text-blue-300">ครั้ง</span>
                         </div>
                     </div>
-
                     <div class="mt-auto pt-6 border-t border-slate-50 flex justify-between items-center">
                         <div>
                             <p class="text-[8px] font-black text-slate-300 uppercase italic">Serial Number</p>
-                            <p class="text-sm font-black text-slate-700 tracking-tight">${s.serial || '-'}</p>
+                            <p class="text-lg font-black text-slate-800 tracking-tight leading-none">${s.serial || '-'}</p>
                         </div>
                         <div class="w-3 h-3 ${isReady ? 'bg-emerald-400 shadow-[0_0_10px_#4ade80]' : 'bg-rose-400'} rounded-full"></div>
                     </div>
-
-                    ${!isReady ? `
-                    <div class="mt-4 p-4 bg-rose-50 rounded-2xl border border-rose-100 text-[11px] font-bold">
-                        <div class="flex justify-between"><span>ส่งซ่อม: ${s.sentDate || '-'}</span><span class="text-rose-700 underline font-black">คืน: ${s.returnDate || '-'}</span></div>
-                    </div>` : ''}
+                    ${!isReady ? `<div class="mt-4 p-4 bg-rose-50 rounded-2xl border border-rose-100 text-[11px] font-bold"><div class="flex justify-between"><span>ส่งซ่อม: ${s.sentDate || '-'}</span><span class="text-rose-700 underline font-black">คืน: ${s.returnDate || '-'}</span></div></div>` : ''}
                 </div>`;
             }).join('');
+
+            // กรองอุปกรณ์
+            let filteredAcc = accData.filter(i => (i.name||"").toLowerCase().includes(accSearch) || (i.itemCode||"").toLowerCase().includes(accSearch));
+            if (currentAccType !== 'ทั้งหมด') filteredAcc = filteredAcc.filter(i => i.procedure === currentAccType);
+            renderAccessories(filteredAcc);
 
             // วาดตารางประวัติล้าง
             document.getElementById('wash-log-body').innerHTML = (washData.recentWashes || []).slice(0, 10).map(w => `
                 <tr class="text-xs font-bold text-slate-500 border-b border-slate-50">
                     <td class="py-5 pr-4 italic">${w.date}</td>
-                    <td class="py-5 text-center">
-                        <span class="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl italic font-black text-sm uppercase">${w.code}</span>
-                    </td>
+                    <td class="py-5 text-center"><span class="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl italic font-black text-sm uppercase">${w.code}</span></td>
                     <td class="py-5 font-black text-slate-800 text-sm pl-4">${w.sn}</td>
-                </tr>
-            `).join('');
+                </tr>`).join('');
         }
 
         function renderAccFilters() {
             const container = document.getElementById('acc-filter');
             const types = ['ทั้งหมด', ...new Set(accData.map(i => i.procedure).filter(p => p))];
-            container.innerHTML = types.map((t, idx) => `
-                <button onclick="filterAcc('${t}', this)" class="acc-tab-btn flex-shrink-0 px-5 py-2 rounded-xl ${idx===0 ? 'bg-emerald-400 text-[#0b3d33]' : 'bg-[#144d44] text-emerald-200'} font-bold text-[10px] uppercase border border-emerald-800 transition-all">
+            container.innerHTML = types.map(t => `
+                <button onclick="filterAccType('${t}', this)" class="acc-tab whitespace-nowrap ${t === 'ทั้งหมด' ? 'bg-white text-[#0b3d33]' : 'bg-[#144d44] text-emerald-200'}">
                     ${t}
                 </button>`).join('');
-            filterAcc('ทั้งหมด', null);
         }
 
-        function filterAcc(type, btn) {
-            if(btn) {
-                document.querySelectorAll('.acc-tab-btn').forEach(b => {
-                    b.classList.replace('bg-emerald-400', 'bg-[#144d44]');
-                    b.classList.replace('text-[#0b3d33]', 'text-emerald-200');
-                });
-                btn.classList.replace('bg-[#144d44]', 'bg-emerald-400');
-                btn.classList.replace('text-emerald-200', 'text-[#0b3d33]');
-            }
-            const filtered = type === 'ทั้งหมด' ? accData : accData.filter(i => i.procedure === type);
-            renderAccessories(filtered);
+        function filterAccType(type, btn) {
+            currentAccType = type;
+            document.querySelectorAll('.acc-tab').forEach(b => {
+                b.classList.remove('bg-white', 'text-[#0b3d33]');
+                b.classList.add('bg-[#144d44]', 'text-emerald-200');
+            });
+            btn.classList.add('bg-white', 'text-[#0b3d33]');
+            btn.classList.remove('bg-[#144d44]', 'text-emerald-200');
+            updateUI();
         }
 
         function renderAccessories(items) {
             document.getElementById('accessories-list').innerHTML = items.map(i => `
-                <div class="bg-slate-50 p-5 rounded-3xl border border-slate-100 flex items-center gap-5 transition-all hover:bg-white hover:shadow-md animate-in">
-                    <div class="w-16 h-16 rounded-2xl bg-white shadow-inner flex items-center justify-center p-2 border border-slate-100 overflow-hidden">
-                        <img src="${i.imageURL || 'https://via.placeholder.com/100?text=📦'}" class="max-w-full max-h-full object-contain">
-                    </div>
+                <div class="bg-white/95 rounded-3xl p-5 flex items-center gap-5 shadow-lg border border-emerald-900/10">
+                    <div class="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center p-2 border border-slate-100"><img src="${i.imageURL || 'https://via.placeholder.com/100?text=📦'}" class="max-w-full max-h-full object-contain"></div>
                     <div class="flex-grow">
                         <h4 class="text-base font-bold text-slate-800 leading-tight">${i.name || 'N/A'}</h4>
-                        <p class="text-[10px] font-bold text-slate-300 uppercase mt-1 tracking-widest">${i.itemCode || '-'}</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">${i.itemCode || '-'}</p>
+                        <div class="flex gap-2 mt-2">
+                            <span class="bg-slate-100 text-[9px] px-2 py-0.5 rounded-full font-bold text-slate-500">${i.specs || '-'}</span>
+                        </div>
                     </div>
                     <div class="text-right">
                         <p class="text-[9px] font-bold text-slate-400 uppercase italic">Stock</p>
@@ -209,7 +211,7 @@
             currentFilter = f;
             ['all', 'ready', 'repair'].forEach(t => {
                 const btn = document.getElementById('btn-' + t);
-                btn.className = t === f ? "flex-shrink-0 px-6 py-2.5 rounded-xl bg-slate-800 text-white font-bold text-xs shadow-md" : "flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-slate-500 font-bold text-xs border border-slate-200 shadow-sm";
+                btn.className = t === f ? "flex-shrink-0 px-6 py-2.5 rounded-xl bg-slate-800 text-white font-bold text-xs shadow-md uppercase" : "flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-slate-500 font-bold text-xs border border-slate-200 shadow-sm uppercase";
             });
             updateUI();
         }
