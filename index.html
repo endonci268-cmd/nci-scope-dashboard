@@ -7,98 +7,79 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Kanit', sans-serif; background-color: #f1f5f9; }
-        .card { transition: all 0.2s ease; border-radius: 1.5rem; }
+        body { font-family: 'Kanit', sans-serif; background-color: #f4f7fa; }
+        .card-main { background: white; border-radius: 2.5rem; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+        .usage-box { background: #f0f7ff; border-radius: 1.5rem; padding: 1.25rem; border: 1px solid #e1efff; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .animate-in { animation: fadeIn 0.3s ease-out; }
+        .animate-in { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .sticky-nav { position: sticky; top: 0; z-index: 50; background: rgba(241, 245, 249, 0.95); backdrop-filter: blur(8px); }
+        .sticky-header { position: sticky; top: 0; z-index: 50; background: rgba(244, 247, 250, 0.95); backdrop-filter: blur(10px); }
     </style>
 </head>
-<body class="p-3 sm:p-6 md:p-10">
+<body class="p-3 sm:p-6 md:p-8">
 
-    <div class="max-w-6xl mx-auto">
-        <div class="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b-2 border-blue-900 pb-4">
+    <div class="max-w-4xl mx-auto">
+        <div class="mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="text-center md:text-left">
-                <h1 class="text-3xl font-black text-blue-900 leading-none uppercase">NCI SCOPE TAGLINE</h1>
-                <p class="text-[11px] font-bold text-slate-500 mt-2 tracking-tight uppercase">ศูนย์ส่องกล้องระบบทางเดินอาหาร สถาบันมะเร็งแห่งชาติ</p>
+                <h1 class="text-2xl font-black text-blue-900 leading-none uppercase">NCI SCOPE TAGLINE</h1>
+                <p class="text-[10px] font-bold text-slate-400 mt-1 uppercase">ศูนย์ส่องกล้องฯ สถาบันมะเร็งแห่งชาติ</p>
             </div>
-            <div id="sync-time" class="text-[10px] font-bold text-slate-400 bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200 mx-auto md:mx-0">
-                ระบบกำลังเชื่อมต่อ...
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div class="md:col-span-2 bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-200">
-                <div class="flex justify-between items-end mb-3">
-                    <span class="text-sm font-bold text-slate-400 italic uppercase">อัตราความพร้อมใช้งาน</span>
-                    <span id="ready-percent" class="text-4xl font-black text-blue-600">0%</span>
-                </div>
-                <div class="w-full bg-slate-100 h-5 rounded-full overflow-hidden p-1 shadow-inner">
-                    <div id="progress-bar" class="h-full bg-blue-600 rounded-full transition-all duration-1000" style="width: 0%"></div>
-                </div>
-            </div>
-            <div class="bg-blue-950 p-6 rounded-[2.5rem] shadow-xl text-white flex flex-col justify-center items-center border-b-8 border-blue-700">
-                <p class="text-blue-300 text-[10px] font-bold uppercase mb-1 italic">จำนวนกล้องทั้งหมด</p>
-                <p id="total-count-display" class="text-5xl font-black">0</p>
+            <div id="ready-percent-label" class="bg-blue-600 text-white px-8 py-2 rounded-full font-black text-lg shadow-lg">
+                พร้อมใช้ 0%
             </div>
         </div>
 
-        <div class="sticky-nav py-3 space-y-4 mb-8">
-            <input type="text" id="search-input" placeholder="ค้นหารหัสกล้อง หรือ S/N..." 
-                class="w-full p-5 rounded-3xl border-none shadow-lg focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700">
-            
+        <div class="sticky-header py-2 space-y-3 mb-6">
+            <input type="text" id="search-input" placeholder="ค้นหาชื่อหรือ S/N..." class="w-full p-4 rounded-2xl border-none shadow-lg focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700">
             <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                <button onclick="setFilter('all')" id="btn-all" class="flex-shrink-0 px-8 py-3 rounded-xl bg-blue-900 text-white font-bold text-xs shadow-md uppercase tracking-widest">ทั้งหมด (<span id="c-all">0</span>)</button>
-                <button onclick="setFilter('ready')" id="btn-ready" class="flex-shrink-0 px-8 py-3 rounded-xl bg-white text-slate-500 font-bold text-xs border border-slate-200 shadow-sm uppercase tracking-widest">พร้อมใช้ (<span id="c-ready" class="text-emerald-500">0</span>)</button>
-                <button onclick="setFilter('repair')" id="btn-repair" class="flex-shrink-0 px-8 py-3 rounded-xl bg-white text-rose-500 font-bold text-xs border border-slate-200 shadow-sm uppercase tracking-widest">ส่งซ่อม (<span id="c-repair" class="text-rose-500">0</span>)</button>
+                <button onclick="setFilter('all')" id="btn-all" class="flex-shrink-0 px-6 py-2 rounded-xl bg-slate-800 text-white font-bold text-xs shadow-md">ทั้งหมด (<span id="c-all">0</span>)</button>
+                <button onclick="setFilter('ready')" id="btn-ready" class="flex-shrink-0 px-6 py-2 rounded-xl bg-white text-slate-500 font-bold text-xs border border-slate-200">พร้อมใช้ (<span id="c-ready">0</span>)</button>
+                <button onclick="setFilter('repair')" id="btn-repair" class="flex-shrink-0 px-6 py-2 rounded-xl bg-white text-rose-500 font-bold text-xs border border-slate-200">ส่งซ่อม (<span id="c-repair">0</span>)</button>
             </div>
         </div>
 
-        <div id="scope-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-            <p class="col-span-full text-center text-slate-400 italic py-10">กำลังดึงข้อมูล...</p>
-        </div>
+        <div id="scope-list" class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12"></div>
 
-        <div class="bg-[#0b3d33] text-white p-6 md:p-10 rounded-t-[3rem] shadow-xl">
-            <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-                <h2 class="text-2xl font-black italic uppercase tracking-tighter">Accessories Catalog</h2>
-                <div id="acc-filter" class="flex gap-2 overflow-x-auto no-scrollbar pb-1"></div>
+        <div class="card-main p-6 md:p-8 animate-in border border-white mb-20">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h2 class="text-xl font-black text-slate-800 uppercase italic">Wash Log History</h2>
             </div>
-        </div>
-        <div class="bg-white rounded-b-[3rem] p-6 border-x border-b border-slate-200 mb-24 min-h-[400px]">
-            <div id="accessories-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            
+            <div class="overflow-x-auto no-scrollbar">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="text-[10px] text-slate-300 font-black uppercase border-b border-slate-50">
+                            <th class="pb-4 pr-4">วันเวลาที่ลงข้อมูล</th>
+                            <th class="pb-4 pr-4 text-center">รหัสกล้อง</th>
+                            <th class="pb-4">Serial Number</th>
+                        </tr>
+                    </thead>
+                    <tbody id="wash-log-body">
+                        </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <script>
-        // ลิงก์ API เดิมที่พี่ใช้แล้วผ่าน
         const API_URL = "https://script.google.com/macros/s/AKfycbxL8VnqCWO-3YuNsMrz5pJ012rLTKTD1gQA2zu8pgENMDQ34YHI8Diyh9NAoVEjskM/exec";
         const WASH_LOG_API = "https://script.google.com/macros/s/AKfycbwUY36cqp5ns2dM5LgT0_MqmwH8k5riXXLDEb3JWo7kzfu81rumQ1opt5URik1H2fCC/exec";
-        const ACCESSORIES_API = "https://script.google.com/macros/s/AKfycbz4NQzTP25uJWuiIfdewY3gzLLYyGD0KIgfIQIgVMTe3xGQqkCiq4cRl7Z2fCUPf-tF/exec";
 
-        let allScopes = [], washData = { usageStats: {}, recentWashes: [] }, accData = [], currentFilter = 'all';
+        let allScopes = [], washData = { usageStats: {}, recentWashes: [] }, currentFilter = 'all';
 
         async function init() {
             try {
-                const [sRes, wRes, aRes] = await Promise.all([
+                const [sRes, wRes] = await Promise.all([
                     fetch(API_URL).then(r => r.json()),
-                    fetch(WASH_LOG_API).then(r => r.json()),
-                    fetch(ACCESSORIES_API).then(r => r.json())
+                    fetch(WASH_LOG_API).then(r => r.json())
                 ]);
-                
-                // แก้จุดนี้: ดึงข้อมูลแบบยืดหยุ่น ถ้า sRes.scopes ไม่มี ให้เอา sRes ตรงๆ เลย
                 allScopes = sRes.scopes || sRes || [];
-                washData = wRes || { usageStats: {}, recentWashes: [] };
-                accData = aRes || [];
-                
+                washData = wRes || washData;
                 updateUI();
-                renderAccFilters();
-                document.getElementById('sync-time').innerText = `อัปเดตล่าสุด: ${new Date().toLocaleTimeString('th-TH')}`;
-            } catch (e) { 
-                console.error("Connect Error:", e);
-                document.getElementById('sync-time').innerText = "เชื่อมต่อผิดพลาด";
-            }
+            } catch (e) { console.error(e); }
         }
 
         function updateUI() {
@@ -110,123 +91,79 @@
             const repairCount = total - readyCount;
             const percent = total > 0 ? Math.round((readyCount/total)*100) : 0;
 
-            document.getElementById('ready-percent').innerText = `${percent}%`;
-            document.getElementById('progress-bar').style.width = `${percent}%`;
-            document.getElementById('total-count-display').innerText = total;
+            document.getElementById('ready-percent-label').innerText = `พร้อมใช้ ${percent}%`;
             document.getElementById('c-all').innerText = total;
             document.getElementById('c-ready').innerText = readyCount;
             document.getElementById('c-repair').innerText = repairCount;
 
             let filtered = allScopes.filter(s => (s.code||"").toLowerCase().includes(search) || (s.serial||"").toLowerCase().includes(search));
-            
-            // กรองสถานะตามปุ่มที่เลือก
             if (currentFilter === 'ready') filtered = filtered.filter(s => (s.status||"").includes("พร้อม"));
             if (currentFilter === 'repair') filtered = filtered.filter(s => !(s.status||"").includes("พร้อม"));
 
+            // 1. วาดการ์ดกล้อง (ด้านบน)
             list.innerHTML = filtered.map(s => {
                 const isReady = (s.status||"").includes("พร้อม");
                 const usage = washData.usageStats[s.code] || 0;
-                const lastWash = (washData.recentWashes || []).find(w => w.code === s.code);
-                
                 return `
-                <div class="card bg-white p-6 shadow-sm border border-slate-200 animate-in flex flex-col h-full">
+                <div class="card-main p-6 md:p-8 animate-in border border-white flex flex-col h-full">
                     <div class="flex justify-between items-start mb-4">
                         <div>
-                            <h3 class="text-2xl font-black text-slate-800 leading-tight">${s.code}</h3>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${s.brand || ''} • ${s.type || ''}</p>
+                            <h3 class="text-3xl font-black text-slate-800 tracking-tighter leading-none mb-1 uppercase">${s.code}</h3>
+                            <span class="px-2 py-0.5 bg-slate-100 text-slate-400 rounded text-[9px] font-black uppercase italic">${s.brand || 'FUJINON'}</span>
                         </div>
                         <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${isReady ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">
-                            ● ${isReady ? 'พร้อมใช้' : 'ส่งซ่อม'}
+                            ● ${isReady ? 'พร้อมใช้งาน' : 'ส่งซ่อม'}
                         </span>
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-4 py-4 border-y border-slate-50 my-2">
-                        <div>
-                            <p class="text-[9px] font-black text-slate-300 uppercase italic">Serial Number</p>
-                            <p class="text-sm font-black text-slate-700">${s.serial || '-'}</p>
-                        </div>
-                        <div class="text-right border-l border-slate-100 pl-4">
-                            <p class="text-[9px] font-black text-slate-300 uppercase italic">จำนวนการใช้</p>
-                            <p class="text-sm font-black text-blue-600">${usage} ครั้ง</p>
+                    <p class="text-xs font-bold text-slate-300 mb-6 uppercase">${s.type || 'EUS'} • ${s.diameter || '3.8'}mm</p>
+                    
+                    <div class="usage-box flex justify-between items-center mb-6 shadow-inner">
+                        <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest italic">Usage Count</span>
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-4xl font-black text-blue-700">${usage}</span>
+                            <span class="text-[10px] font-bold text-blue-300">ครั้ง</span>
                         </div>
                     </div>
 
-                    <div class="mt-2 p-3 bg-blue-50/50 rounded-2xl flex justify-between items-center text-[10px] border border-blue-100/50">
-                        <span class="text-blue-400 font-bold italic">ล้างล่าสุด:</span>
-                        <span class="text-blue-700 font-black">${lastWash ? lastWash.date : 'ไม่มีประวัติวันนี้'}</span>
+                    <div class="mt-auto pt-6 border-t border-slate-50 flex justify-between items-center">
+                        <div>
+                            <p class="text-[8px] font-black text-slate-300 uppercase italic">Serial Number</p>
+                            <p class="text-sm font-black text-slate-700 tracking-tight">${s.serial || '-'}</p>
+                        </div>
+                        <div class="w-3 h-3 ${isReady ? 'bg-emerald-400 shadow-[0_0_10px_#4ade80]' : 'bg-rose-400 shadow-[0_0_10px_#f87171]'} rounded-full animate-pulse"></div>
                     </div>
 
                     ${!isReady ? `
-                    <div class="mt-4 p-4 bg-rose-50 rounded-[1.5rem] border border-rose-100 animate-in">
-                        <p class="text-[10px] font-black text-rose-400 uppercase mb-2">Repair Details</p>
-                        <div class="flex justify-between text-xs font-bold">
-                            <span class="text-slate-500 italic">วันที่ส่งซ่อม:</span>
-                            <span class="text-slate-800">${s.sentDate || '-'}</span>
-                        </div>
-                        <div class="flex justify-between mt-2 text-xs font-bold">
-                            <span class="text-rose-500 italic uppercase">กำหนดคืน:</span>
-                            <span class="text-rose-700 underline font-black text-lg">${s.returnDate || '-'}</span>
-                        </div>
+                    <div class="mt-4 p-4 bg-rose-50 rounded-2xl border border-rose-100 text-[11px] font-bold">
+                        <div class="flex justify-between"><span>วันที่ส่งซ่อม: ${s.sentDate || '-'}</span><span class="text-rose-700 underline font-black">คืน: ${s.returnDate || '-'}</span></div>
                     </div>` : ''}
                 </div>`;
             }).join('');
-            
-            renderAccessories(accData.filter(i => (i.name||"").toLowerCase().includes(search)));
-        }
 
-        function renderAccFilters() {
-            const container = document.getElementById('acc-filter');
-            const types = ['ทั้งหมด', ...new Set(accData.map(i => i.procedure).filter(p => p))];
-            container.innerHTML = types.map((t, idx) => `
-                <button onclick="filterAcc('${t}', this)" class="acc-tab-btn flex-shrink-0 px-6 py-2 rounded-xl ${idx===0 ? 'bg-emerald-400 text-[#0b3d33]' : 'bg-[#144d44] text-emerald-200'} font-bold text-[11px] uppercase border border-emerald-900 shadow-md">
-                    ${t}
-                </button>`).join('');
-            filterAcc('ทั้งหมด', null);
-        }
-
-        function filterAcc(type, btn) {
-            if(btn) {
-                document.querySelectorAll('.acc-tab-btn').forEach(b => {
-                    b.classList.replace('bg-emerald-400', 'bg-[#144d44]');
-                    b.classList.replace('text-[#0b3d33]', 'text-emerald-200');
-                });
-                btn.classList.replace('bg-[#144d44]', 'bg-emerald-400');
-                btn.classList.replace('text-emerald-200', 'text-[#0b3d33]');
-            }
-            const filtered = type === 'ทั้งหมด' ? accData : accData.filter(i => i.procedure === type);
-            renderAccessories(filtered);
-        }
-
-        function renderAccessories(items) {
-            document.getElementById('accessories-list').innerHTML = items.map(i => `
-                <div class="bg-slate-50 p-5 rounded-3xl border border-slate-100 flex items-center gap-5 transition-all hover:bg-white hover:shadow-md cursor-pointer group" onclick="this.classList.toggle('is-open')">
-                    <div class="w-16 h-16 rounded-2xl bg-white flex items-center justify-center p-2 border border-slate-100 shadow-inner overflow-hidden">
-                        <img src="${i.imageURL || 'https://via.placeholder.com/100?text=📦'}" class="max-w-full max-h-full object-contain">
-                    </div>
-                    <div class="flex-grow">
-                        <h4 class="text-lg font-bold text-slate-800 leading-tight">${i.name || 'ไม่มีชื่อ'}</h4>
-                        <p class="text-[10px] font-bold text-slate-300 uppercase mt-1 tracking-widest">${i.itemCode || '-'}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[9px] font-bold text-slate-400 uppercase">Stock</p>
-                        <p class="text-xl font-black ${i.qty > 5 ? 'text-emerald-600' : 'text-rose-600'}">${i.qty || 0}</p>
-                    </div>
-                </div>`).join('');
+            // 2. วาดตารางประวัติล้าง (ด้านล่างตามรูปที่ 2)
+            document.getElementById('wash-log-body').innerHTML = (washData.recentWashes || []).slice(0, 10).map(w => `
+                <tr class="text-xs font-bold text-slate-500 border-b border-slate-50">
+                    <td class="py-5 pr-4">${w.date}</td>
+                    <td class="py-5 text-center">
+                        <span class="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl italic font-black text-sm uppercase">${w.code}</span>
+                    </td>
+                    <td class="py-5 font-black text-slate-800 text-sm tracking-tight pl-4">${w.sn}</td>
+                </tr>
+            `).join('');
         }
 
         function setFilter(f) {
             currentFilter = f;
-            const tabs = ['all', 'ready', 'repair'];
-            tabs.forEach(t => {
+            ['all', 'ready', 'repair'].forEach(t => {
                 const btn = document.getElementById('btn-' + t);
-                btn.className = t === f ? "flex-shrink-0 px-8 py-3 rounded-xl bg-blue-900 text-white font-bold text-xs shadow-md uppercase tracking-widest" : "flex-shrink-0 px-8 py-3 rounded-xl bg-white text-slate-500 font-bold text-xs border border-slate-200 shadow-sm uppercase tracking-widest";
+                btn.className = t === f ? "flex-shrink-0 px-6 py-2 rounded-xl bg-slate-800 text-white font-bold text-xs shadow-md" : "flex-shrink-0 px-6 py-2 rounded-xl bg-white text-slate-500 font-bold text-xs border border-slate-200 shadow-sm";
             });
             updateUI();
         }
 
         document.getElementById('search-input').addEventListener('input', updateUI);
-        init(); 
-        setInterval(init, 30000); // อัปเดตทุก 30 วินาที
+        init(); setInterval(init, 30000);
     </script>
 </body>
 </html>
