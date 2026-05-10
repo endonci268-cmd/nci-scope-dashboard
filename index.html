@@ -17,65 +17,63 @@
 </head>
 <body class="p-3 sm:p-6 md:p-10">
 
-    <div class="max-w-6xl mx-auto">
+    <div class="max-w-4xl mx-auto">
         <div class="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div class="text-center md:text-left">
                 <h1 class="text-3xl font-black text-blue-900 leading-none">NCI SCOPE TAGLINE</h1>
-                <p class="text-xs font-bold text-slate-500 mt-1 uppercase tracking-wider">ศูนย์ส่องกล้องระบบทางเดินอาหาร สถาบันมะเร็งแห่งชาติ</p>
+                <p class="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-wider">ระบบจัดการกล้องและอุปกรณ์ ศูนย์ส่องกล้องฯ สถาบันมะเร็งแห่งชาติ</p>
             </div>
-            <div id="sync-time" class="text-[10px] font-bold text-slate-400 bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200 mx-auto md:mx-0">
-                กำลังเชื่อมต่อ...
+            <div id="sync-time" class="text-[10px] font-bold text-slate-400 bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200 mx-auto md:mx-0 uppercase">
+                SYSTEM CONNECTING...
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div class="md:col-span-2 bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-200">
+            <div class="md:col-span-2 bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200">
                 <div class="flex justify-between items-end mb-3">
-                    <span class="text-sm font-bold text-slate-400">อัตราความพร้อมใช้งาน</span>
+                    <span class="text-sm font-bold text-slate-400 italic">อัตราความพร้อมใช้งาน</span>
                     <span id="ready-percent" class="text-4xl font-black text-blue-600">0%</span>
                 </div>
-                <div class="w-full bg-slate-100 h-5 rounded-full overflow-hidden p-1 shadow-inner">
+                <div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden p-1 shadow-inner">
                     <div id="progress-bar" class="h-full bg-blue-600 rounded-full transition-all duration-1000" style="width: 0%"></div>
                 </div>
             </div>
-            <div class="bg-blue-950 p-6 rounded-[2.5rem] shadow-xl text-white flex flex-col justify-center items-center border-b-8 border-blue-700">
-                <p class="text-blue-300 text-[10px] font-bold uppercase mb-1">กล้องทั้งหมดในระบบ</p>
+            <div class="bg-blue-950 p-6 rounded-[2rem] shadow-xl text-white flex flex-col justify-center items-center border-b-8 border-blue-700">
+                <p class="text-blue-300 text-[10px] font-bold uppercase mb-1">จำนวนกล้องทั้งหมด</p>
                 <p id="total-count-val" class="text-5xl font-black">0</p>
             </div>
         </div>
 
-        <div class="sticky-nav py-3 space-y-4 mb-8">
-            <input type="text" id="search-input" placeholder="ค้นหารหัสกล้อง หรือ S/N..." 
-                class="w-full p-5 rounded-3xl border-none shadow-lg focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700">
-            
+        <div class="sticky-nav py-2 space-y-3 mb-8">
+            <input type="text" id="search-input" placeholder="ค้นหารหัสกล้อง หรือ S/N..." class="w-full p-4 rounded-2xl border-none shadow-lg focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700">
             <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                <button onclick="setFilter('all')" id="btn-all" class="flex-shrink-0 px-8 py-3 rounded-2xl bg-slate-800 text-white font-bold text-sm shadow-md">ทั้งหมด (<span id="c-all">0</span>)</button>
-                <button onclick="setFilter('ready')" id="btn-ready" class="flex-shrink-0 px-8 py-3 rounded-2xl bg-white text-slate-500 font-bold text-sm border border-slate-200 shadow-sm">พร้อมใช้ (<span id="c-ready" class="text-emerald-500">0</span>)</button>
-                <button onclick="setFilter('repair')" id="btn-repair" class="flex-shrink-0 px-8 py-3 rounded-2xl bg-white text-rose-500 font-bold text-sm border border-slate-200 shadow-sm">ส่งซ่อม (<span id="c-repair" class="text-rose-500">0</span>)</button>
+                <button onclick="setFilter('all')" id="btn-all" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-slate-800 text-white font-bold text-xs shadow-md uppercase">ทั้งหมด (<span id="c-all">0</span>)</button>
+                <button onclick="setFilter('ready')" id="btn-ready" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-slate-500 font-bold text-xs border border-slate-200 shadow-sm uppercase">พร้อมใช้ (<span id="c-ready" class="text-emerald-500">0</span>)</button>
+                <button onclick="setFilter('repair')" id="btn-repair" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-rose-500 font-bold text-xs border border-slate-200 shadow-sm uppercase">ส่งซ่อม (<span id="c-repair" class="text-rose-500">0</span>)</button>
             </div>
         </div>
 
-        <div id="scope-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16"></div>
+        <div id="scope-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-16"></div>
 
-        <div class="bg-[#0b3d33] text-white p-8 rounded-t-[3rem] shadow-xl">
-            <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-                <h2 class="text-2xl font-black italic uppercase tracking-tighter">Accessories Catalog</h2>
-                <div id="acc-filter" class="flex gap-2 overflow-x-auto no-scrollbar pb-1"></div>
-            </div>
+        <div class="bg-[#0b3d33] text-white p-6 rounded-t-[2.5rem] shadow-xl">
+            <h2 class="text-xl font-black italic mb-4 uppercase tracking-tighter uppercase">Accessories Catalog</h2>
+            <div id="acc-filter" class="flex gap-2 overflow-x-auto no-scrollbar pb-2"></div>
         </div>
-        <div class="bg-white rounded-b-[3rem] p-6 border-x border-b border-slate-200 mb-24 min-h-[400px]">
-            <div id="accessories-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        <div class="bg-white rounded-b-[2.5rem] p-4 border-x border-b border-slate-200 mb-24 min-h-[300px]">
+            <div id="accessories-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
         </div>
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxL8VnqCWO-3YuNsMrz5pJ012rLTKTD1gQA2zu8pgENMDQ34YHI8Diyh9NAoVEjskM/exec";
-        const WASH_LOG_API = "https://script.google.com/macros/s/AKfycbwUY36cqp5ns2dM5LgT0_MqmwH8k5riXXLDEb3JWo7kzfu81rumQ1opt5URik1H2fCC/exec";
-        const ACCESSORIES_API = "https://script.google.com/macros/s/AKfycbz4NQzTP25uJWuiIfdewY3gzLLYyGD0KIgfIQIgVMTe3xGQqkCiq4cRl7Z2fCUPf-tF/exec";
+        // *** พี่ชินาภา แก้ไขตรงนี้ให้เป็นลิงก์ Web App ของพี่นะครับ ***
+        const API_URL = "วางลิงก์จัดการกล้องของพี่ที่นี่";
+        const WASH_LOG_API = "วางลิงก์ประวัติล้างของพี่ที่นี่";
+        const ACCESSORIES_API = "วางลิงก์อุปกรณ์ของพี่ที่นี่";
 
         let allScopes = [], washData = { recentWashes: [], usageStats: {} }, accData = [], currentFilter = 'all';
 
         async function init() {
+            if (API_URL.includes("วางลิงก์")) return; // กันพังถ้ายังไม่ได้ใส่ลิงก์
             try {
                 const [sRes, wRes, aRes] = await Promise.all([
                     fetch(API_URL).then(r => r.json()),
@@ -87,7 +85,8 @@
                 accData = aRes || [];
                 updateUI();
                 renderAccFilters();
-            } catch (e) { console.error(e); }
+                document.getElementById('sync-time').innerText = `UPDATED: ${new Date().toLocaleTimeString('th-TH')}`;
+            } catch (e) { document.getElementById('sync-time').innerText = "เชื่อมต่อล้มเหลว"; }
         }
 
         function updateUI() {
@@ -116,33 +115,92 @@
                 const lastWash = (washData.recentWashes || []).find(w => w.code === s.code);
                 
                 return `
-                <div class="card bg-white p-6 shadow-sm border border-slate-200 animate-in flex flex-col h-full">
-                    <div class="flex justify-between items-start mb-4">
+                <div class="card bg-white p-5 border border-slate-100 shadow-sm animate-in flex flex-col h-full">
+                    <div class="flex justify-between items-start mb-3">
                         <div>
-                            <h3 class="text-2xl font-black text-slate-800 leading-tight">${s.code}</h3>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${s.brand} • ${s.type}</p>
+                            <h3 class="text-xl font-bold text-slate-800 leading-none mb-1">${s.code}</h3>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">${s.brand} • ${s.type}</p>
                         </div>
-                        <span class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase ${isReady ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'}">
+                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${isReady ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">
                             ● ${isReady ? 'พร้อมใช้' : 'ส่งซ่อม'}
                         </span>
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-4 py-4 border-y border-slate-50 my-2">
-                        <div>
-                            <p class="text-[9px] font-black text-slate-300 uppercase">Serial Number</p>
-                            <p class="text-sm font-black text-slate-700">${s.serial || '-'}</p>
-                        </div>
-                        <div class="text-right border-l border-slate-100 pl-4">
-                            <p class="text-[9px] font-black text-slate-300 uppercase">จำนวนการใช้</p>
-                            <p class="text-sm font-black text-blue-600">${usage} ครั้ง</p>
-                        </div>
+                    <div class="grid grid-cols-2 gap-4 py-3 border-y border-slate-50 my-2">
+                        <div><p class="text-[8px] font-black text-slate-300 uppercase">S/N</p><p class="text-sm font-black text-slate-700">${s.serial || '-'}</p></div>
+                        <div class="text-right border-l border-slate-50 pl-4"><p class="text-[8px] font-black text-slate-300 uppercase italic">ล้างแล้ว</p><p class="text-sm font-black text-blue-600">${usage} ครั้ง</p></div>
                     </div>
 
-                    <div class="mt-2 p-3 bg-blue-50/50 rounded-2xl flex justify-between items-center text-[11px] border border-blue-100/50">
+                    <div class="mt-1 p-2.5 bg-blue-50/50 rounded-xl flex justify-between items-center text-[10px] border border-blue-100/30">
                         <span class="text-blue-400 font-bold italic">ล้างล่าสุด:</span>
                         <span class="text-blue-700 font-black">${lastWash ? lastWash.date : 'ไม่มีประวัติวันนี้'}</span>
                     </div>
 
                     ${!isReady ? `
-                    <div class="mt-4 p-4 bg-rose-50 rounded-[1.5rem] border border-rose-100 animate-in">
-                        <p class="text-[10px] font-black text
+                    <div class="mt-3 p-3 bg-rose-50 rounded-2xl border border-rose-100 text-[11px] font-bold">
+                        <div class="flex justify-between text-rose-400 italic mb-1 uppercase tracking-tighter">Maintenance Detail</div>
+                        <div class="flex justify-between"><span>วันที่ส่งซ่อม:</span><span class="text-slate-700 font-bold">${s.sentDate || '-'}</span></div>
+                        <div class="flex justify-between mt-1 text-rose-600"><span>กำหนดคืน:</span><span class="font-black underline">${s.returnDate || '-'}</span></div>
+                    </div>` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        function renderAccFilters() {
+            const container = document.getElementById('acc-filter');
+            const types = ['ทั้งหมด', ...new Set(accData.map(i => i.procedure).filter(p => p))];
+            container.innerHTML = types.map((t, idx) => `
+                <button onclick="filterAcc('${t}', this)" class="acc-tab-btn flex-shrink-0 px-5 py-2 rounded-xl ${idx===0 ? 'bg-emerald-400 text-[#0b3d33]' : 'bg-[#144d44] text-emerald-200'} font-bold text-[10px] uppercase shadow-md border border-emerald-800 transition-all">
+                    ${t}
+                </button>`).join('');
+            filterAcc('ทั้งหมด', null);
+        }
+
+        function filterAcc(type, btn) {
+            if(btn) {
+                document.querySelectorAll('.acc-tab-btn').forEach(b => {
+                    b.classList.replace('bg-emerald-400', 'bg-[#144d44]');
+                    b.classList.replace('text-[#0b3d33]', 'text-emerald-200');
+                });
+                btn.classList.replace('bg-[#144d44]', 'bg-emerald-400');
+                btn.classList.replace('text-emerald-200', 'text-[#0b3d33]');
+            }
+            const filtered = type === 'ทั้งหมด' ? accData : accData.filter(i => i.procedure === type);
+            renderAccessories(filtered);
+        }
+
+        function renderAccessories(items) {
+            document.getElementById('accessories-list').innerHTML = items.map(i => `
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center gap-4 animate-in">
+                    <div class="w-12 h-12 rounded-lg bg-white flex items-center justify-center border border-slate-100 p-1">
+                        <img src="${i.imageURL || 'https://via.placeholder.com/50'}" class="max-w-full max-h-full object-contain">
+                    </div>
+                    <div class="flex-grow">
+                        <h4 class="text-sm font-bold text-slate-800 leading-tight">${i.name}</h4>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">${i.itemCode}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[8px] font-bold text-slate-300 uppercase">Stock</p>
+                        <p class="text-sm font-black ${i.qty > 5 ? 'text-emerald-600' : 'text-rose-500'}">${i.qty || 0}</p>
+                    </div>
+                </div>`).join('');
+        }
+
+        function setFilter(f) {
+            currentFilter = f;
+            ['btn-all', 'btn-ready', 'btn-repair'].forEach(id => {
+                const btn = document.getElementById(id);
+                if(id.includes(f)) {
+                    btn.className = "flex-shrink-0 px-6 py-2.5 rounded-xl bg-slate-800 text-white font-bold text-xs shadow-md uppercase";
+                } else {
+                    btn.className = "flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-slate-500 font-bold text-xs border border-slate-200 uppercase";
+                }
+            });
+            updateUI();
+        }
+
+        document.getElementById('search-input').addEventListener('input', updateUI);
+        init(); setInterval(init, 30000);
+    </script>
+</body>
+</html>
