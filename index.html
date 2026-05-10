@@ -12,7 +12,7 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .animate-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .sticky-header { position: sticky; top: 0; z-index: 50; background: rgba(248, 250, 252, 0.9); backdrop-filter: blur(10px); }
+        .sticky-header { position: sticky; top: 0; z-index: 50; background: rgba(248, 250, 252, 0.95); backdrop-filter: blur(10px); }
     </style>
 </head>
 <body class="p-3 sm:p-6">
@@ -24,30 +24,22 @@
             
             <div class="mt-6 bg-white p-5 rounded-[2rem] shadow-xl border border-slate-100">
                 <div class="flex justify-between items-end mb-2">
-                    <span class="text-xs font-bold text-slate-400">ความพร้อมใช้งาน</span>
+                    <span class="text-xs font-bold text-slate-400 italic">ความพร้อมใช้งาน</span>
                     <span id="ready-percent" class="text-4xl font-black text-blue-600">0%</span>
                 </div>
                 <div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden p-1 shadow-inner">
                     <div id="progress-bar" class="h-full bg-blue-600 rounded-full transition-all duration-1000" style="width: 0%"></div>
                 </div>
-                <div class="flex justify-between mt-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                <div class="flex justify-between mt-3 text-[10px] font-black uppercase text-slate-400">
                     <span>พร้อมใช้: <span id="ready-count" class="text-emerald-500">0</span></span>
                     <span>ทั้งหมด: <span id="total-scopes">0</span></span>
                 </div>
             </div>
         </div>
 
-        <div class="mb-8 bg-blue-50 p-5 rounded-[2rem] border border-blue-100">
-            <h2 class="text-sm font-black text-blue-800 mb-3 flex items-center gap-2">
-                <span class="w-1.5 h-4 bg-blue-500 rounded-full"></span> ประวัติการล้างวันนี้
-            </h2>
-            <div id="wash-log-list" class="space-y-2">
-                </div>
-        </div>
-
         <div class="sticky-header py-2 space-y-3 mb-6">
-            <input type="text" id="search-input" placeholder="พิมพ์ชื่อหรือรหัสเพื่อค้นหา..." 
-                class="w-full p-4 rounded-2xl border-none shadow-lg focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700">
+            <input type="text" id="search-input" placeholder="ค้นหารหัส หรือ S/N..." 
+                class="w-full p-4 rounded-2xl border-none shadow-lg focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700 text-sm">
             <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
                 <button onclick="setFilter('all')" id="btn-all" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-slate-800 text-white font-bold text-xs shadow-md">ทั้งหมด</button>
                 <button onclick="setFilter('ready')" id="btn-ready" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-slate-500 font-bold text-xs border border-slate-200">พร้อมใช้</button>
@@ -57,10 +49,9 @@
 
         <div id="scope-list" class="space-y-4 mb-12"></div>
 
-        <div class="bg-[#0b3d33] text-white p-6 rounded-t-[2.5rem] shadow-xl mt-10">
-            <h2 class="text-xl font-black italic mb-4 uppercase">Accessories</h2>
-            <div id="acc-filter" class="flex gap-2 overflow-x-auto no-scrollbar pb-2">
-                </div>
+        <div class="bg-[#0b3d33] text-white p-6 rounded-t-[2.5rem] shadow-xl">
+            <h2 class="text-xl font-black italic mb-4 uppercase">Accessories Catalog</h2>
+            <div id="acc-filter" class="flex gap-2 overflow-x-auto no-scrollbar pb-2"></div>
         </div>
         <div class="bg-white rounded-b-[2.5rem] p-4 border-x border-b border-slate-200 mb-24 min-h-[300px]">
             <div id="accessories-list" class="space-y-3"></div>
@@ -85,7 +76,6 @@
                 washData = wRes || washData;
                 accData = aRes || [];
                 updateUI();
-                renderWashLog();
                 renderAccFilters();
             } catch (e) { console.error(e); }
         }
@@ -94,17 +84,10 @@
             const search = document.getElementById('search-input').value.toLowerCase();
             const list = document.getElementById('scope-list');
             
-            let filtered = allScopes.filter(s => (s.code||"").toLowerCase().includes(search));
-            
-            // กรองสถานะ
-            if (currentFilter === 'ready') {
-                filtered = filtered.filter(s => (s.status||"").includes("พร้อม"));
-            } else if (currentFilter === 'repair') {
-                // ถ้ากด "ส่งซ่อม" ให้ขึ้นเฉพาะตัวที่ "ไม่พร้อมใช้" เท่านั้น
-                filtered = filtered.filter(s => !(s.status||"").includes("พร้อม"));
-            }
+            let filtered = allScopes.filter(s => (s.code||"").toLowerCase().includes(search) || (s.serial||"").toLowerCase().includes(search));
+            if (currentFilter === 'ready') filtered = filtered.filter(s => (s.status||"").includes("พร้อม"));
+            if (currentFilter === 'repair') filtered = filtered.filter(s => !(s.status||"").includes("พร้อม"));
 
-            // คำนวณ %
             const total = allScopes.length;
             const ready = allScopes.filter(s => (s.status||"").includes("พร้อม")).length;
             const percent = total > 0 ? Math.round((ready/total)*100) : 0;
@@ -116,40 +99,51 @@
 
             list.innerHTML = filtered.map(s => {
                 const isReady = (s.status||"").includes("พร้อม");
+                const usage = washData.usageStats[s.code] || 0;
+                const lastWash = (washData.recentWashes || []).find(w => w.code === s.code);
+                
                 return `
                 <div class="card bg-white p-5 border border-slate-100 shadow-sm animate-in">
-                    <div class="flex justify-between items-start">
+                    <div class="flex justify-between items-start mb-3">
                         <div>
-                            <h3 class="text-xl font-bold text-slate-800 leading-none">${s.code}</h3>
-                            <p class="text-[9px] font-bold text-slate-400 mt-1 uppercase">${s.brand} • ${s.type}</p>
+                            <h3 class="text-xl font-bold text-slate-800 leading-none mb-1">${s.code}</h3>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">${s.brand} • ${s.type}</p>
                         </div>
-                        <span class="px-3 py-1 rounded-full text-[9px] font-black ${isReady ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">
+                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${isReady ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-100 text-rose-700'}">
                             ● ${isReady ? 'พร้อมใช้' : 'ส่งซ่อม'}
                         </span>
                     </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 py-3 border-t border-slate-50">
+                        <div>
+                            <p class="text-[8px] font-black text-slate-300 uppercase">Serial Number</p>
+                            <p class="text-sm font-black text-slate-700">${s.serial || '-'}</p>
+                        </div>
+                        <div class="text-right border-l border-slate-50 pl-4">
+                            <p class="text-[8px] font-black text-slate-300 uppercase italic">ล้างแล้วทั้งหมด</p>
+                            <p class="text-sm font-black text-blue-600">${usage} ครั้ง</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-2 p-3 bg-blue-50/50 rounded-2xl border border-blue-100/50 flex justify-between items-center text-[10px]">
+                        <span class="text-blue-400 font-bold uppercase italic">ล้างล่าสุด:</span>
+                        <span class="text-blue-700 font-black">${lastWash ? lastWash.date : 'ไม่มีประวัติวันนี้'}</span>
+                    </div>
+
                     ${!isReady ? `
-                    <div class="mt-4 p-3 bg-rose-50 rounded-2xl border border-rose-100 text-[11px] font-bold">
-                        <div class="flex justify-between text-rose-400 italic mb-1 uppercase tracking-tighter">รายละเอียดการส่งซ่อม</div>
-                        <div class="flex justify-between"><span>วันที่ส่งซ่อม:</span><span class="text-slate-700">${s.sentDate || '-'}</span></div>
-                        <div class="flex justify-between mt-1"><span>กำหนดคืน:</span><span class="text-rose-700 underline">${s.returnDate || '-'}</span></div>
+                    <div class="mt-3 p-3 bg-rose-50 rounded-2xl border border-rose-100 text-[11px] font-bold">
+                        <div class="flex justify-between"><span>ส่งซ่อมเมื่อ:</span><span class="text-slate-700">${s.sentDate || '-'}</span></div>
+                        <div class="flex justify-between mt-1 text-rose-600"><span>กำหนดคืน:</span><span class="font-black underline">${s.returnDate || '-'}</span></div>
                     </div>` : ''}
                 </div>`;
             }).join('');
-        }
-
-        function renderWashLog() {
-            document.getElementById('wash-log-list').innerHTML = (washData.recentWashes || []).slice(0, 5).map(w => `
-                <div class="flex justify-between items-center p-3 bg-white rounded-xl text-[11px] font-bold shadow-sm">
-                    <span class="text-blue-800">${w.code}</span>
-                    <span class="text-slate-300 italic">${w.date.split(' ')[1]} น.</span>
-                </div>`).join('');
         }
 
         function renderAccFilters() {
             const container = document.getElementById('acc-filter');
             const types = ['ทั้งหมด', ...new Set(accData.map(i => i.procedure).filter(p => p))];
             container.innerHTML = types.map((t, idx) => `
-                <button onclick="filterAcc('${t}', this)" class="acc-tab-btn flex-shrink-0 px-5 py-2 rounded-xl ${idx===0 ? 'bg-emerald-400 text-[#0b3d33]' : 'bg-[#144d44] text-emerald-200'} font-bold text-[10px] uppercase shadow-md border border-emerald-800">
+                <button onclick="filterAcc('${t}', this)" class="acc-tab-btn flex-shrink-0 px-5 py-2 rounded-xl ${idx===0 ? 'bg-emerald-400 text-[#0b3d33]' : 'bg-[#144d44] text-emerald-200'} font-bold text-[10px] uppercase border border-emerald-800">
                     ${t}
                 </button>`).join('');
             filterAcc('ทั้งหมด', null);
@@ -171,12 +165,12 @@
         function renderAccessories(items) {
             document.getElementById('accessories-list').innerHTML = items.map(i => `
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center gap-4 animate-in">
-                    <div class="w-12 h-12 rounded-lg bg-white flex items-center justify-center p-1 border border-slate-100">
+                    <div class="w-12 h-12 rounded-lg bg-white flex items-center justify-center border border-slate-100 p-1">
                         <img src="${i.imageURL || 'https://via.placeholder.com/50'}" class="max-w-full max-h-full object-contain">
                     </div>
                     <div class="flex-grow">
                         <h4 class="text-sm font-bold text-slate-800 leading-tight">${i.name}</h4>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase mt-0.5">${i.itemCode}</p>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">${i.itemCode}</p>
                     </div>
                     <div class="text-right">
                         <p class="text-[8px] font-bold text-slate-300 uppercase">Stock</p>
