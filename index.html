@@ -22,10 +22,7 @@
         <div class="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
                 <h1 class="text-4xl font-black text-blue-900 tracking-tight mb-1">NCI SCOPETAGLINE</h1>
-                <div class="flex items-center gap-2 text-slate-500">
-                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
-                    <p class="text-sm font-medium">ระบบดิจิทัลจัดการสถานะกล้องและอุปกรณ์ • สถาบันมะเร็งแห่งชาติ</p>
-                </div>
+                <p class="text-sm font-medium text-slate-500 italic">ระบบจัดการสถานะกล้องและอุปกรณ์ • สถาบันมะเร็งแห่งชาติ</p>
             </div>
             <div id="last-update" class="text-[12px] font-bold text-slate-400 bg-white px-6 py-2 rounded-full shadow-sm border border-slate-100 italic">
                 กำลังเชื่อมต่อระบบ...
@@ -34,37 +31,42 @@
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             <div class="md:col-span-2 bg-white rounded-[3rem] p-8 shadow-sm border border-slate-100 relative overflow-hidden">
-                <div class="relative z-10">
-                    <div class="flex justify-between items-center mb-6">
-                        <span class="font-bold text-slate-400 uppercase tracking-widest text-xs">Overall Availability</span>
-                        <span id="availability-percent" class="text-4xl font-black text-blue-600 tracking-tighter">0%</span>
-                    </div>
-                    <div class="w-full bg-slate-100 rounded-full h-5 overflow-hidden p-1">
-                        <div id="progress-fill" class="progress-bar-fill h-full bg-blue-600 rounded-full shadow-sm" style="width: 0%"></div>
-                    </div>
+                <div class="flex justify-between items-center mb-6">
+                    <span class="font-bold text-slate-400 uppercase tracking-widest text-xs">Availability</span>
+                    <span id="availability-percent" class="text-4xl font-black text-blue-600">0%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-5 overflow-hidden p-1">
+                    <div id="progress-fill" class="progress-bar-fill h-full bg-blue-600 rounded-full" style="width: 0%"></div>
                 </div>
             </div>
-            <div class="bg-blue-950 rounded-[3rem] p-8 shadow-xl text-white flex flex-col justify-center border-b-8 border-blue-700 text-center">
-                <p class="text-blue-300 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">Total Inventory</p>
-                <h2 class="text-6xl font-black"><span id="count-all">0</span>ตัว</h2>
+            <div class="bg-blue-950 rounded-[3rem] p-8 shadow-xl text-white flex flex-col justify-center text-center border-b-8 border-blue-700">
+                <p class="text-blue-300 text-[10px] font-bold uppercase tracking-widest mb-2">Total Inventory</p>
+                <h2 class="text-6xl font-black"><span id="count-all">0</span> <small class="text-xl font-light opacity-40">ตัว</small></h2>
             </div>
         </div>
 
         <div class="flex flex-col md:flex-row gap-4 mb-10">
-            <input type="text" id="search-input" placeholder="ค้นหาด้วยรหัสกล้อง หรือยี่ห้ออุปกรณ์..." class="flex-grow p-5 rounded-3xl border-none shadow-sm outline-none bg-white font-medium">
+            <input type="text" id="search-input" placeholder="ค้นหาด้วยรหัส หรือชื่ออุปกรณ์..." class="flex-grow p-5 rounded-3xl border-none shadow-sm focus:ring-4 focus:ring-blue-100 outline-none bg-white font-medium">
             <div class="flex gap-2 p-2 bg-white rounded-3xl shadow-sm border border-slate-100 overflow-x-auto no-scrollbar">
-                <button onclick="filterData('all')" id="btn-all" class="px-8 py-3 rounded-2xl bg-blue-600 text-white font-bold text-sm shadow-lg">ทั้งหมด</button>
-                <button onclick="filterData('ready')" id="btn-ready" class="px-8 py-3 rounded-2xl text-slate-400 font-bold text-sm">พร้อมใช้ <span id="count-ready" class="ml-1 opacity-40">0</span></button>
-                <button onclick="filterData('repair')" id="btn-repair" class="px-8 py-3 rounded-2xl text-slate-400 font-bold text-sm">ส่งซ่อม <span id="count-repair" class="ml-1 opacity-40">0</span></button>
+                <button onclick="filterData('all')" id="btn-all" class="px-8 py-3 rounded-2xl bg-blue-600 text-white font-bold text-sm shadow-lg whitespace-nowrap">ทั้งหมด</button>
+                <button onclick="filterData('ready')" id="btn-ready" class="px-8 py-3 rounded-2xl text-slate-400 hover:bg-slate-50 font-bold text-sm whitespace-nowrap">พร้อมใช้ <span id="count-ready" class="ml-1 opacity-40">0</span></button>
+                <button onclick="filterData('repair')" id="btn-repair" class="px-8 py-3 rounded-2xl text-slate-400 hover:bg-slate-50 font-bold text-sm whitespace-nowrap">ส่งซ่อม <span id="count-repair" class="ml-1 opacity-40">0</span></button>
             </div>
         </div>
 
         <div id="scope-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"></div>
 
         <div class="bg-white rounded-[3.5rem] p-10 shadow-sm border border-slate-100 mb-16">
-            <h2 class="text-2xl font-black text-slate-800 mb-10">Wash Log History</h2>
+            <h2 class="text-2xl font-black text-slate-800 mb-8">Wash Log History (10 เคสล่าสุด)</h2>
             <div class="overflow-x-auto no-scrollbar">
                 <table class="w-full text-left border-separate border-spacing-y-4">
+                    <thead>
+                        <tr class="text-slate-400 text-[10px] uppercase tracking-[0.2em] px-6">
+                            <th class="px-6 pb-2">วันเวลา</th>
+                            <th class="px-6 pb-2 text-center">รหัสกล้อง</th>
+                            <th class="px-6 pb-2">Serial Number</th>
+                        </tr>
+                    </thead>
                     <tbody id="wash-log-table-body"></tbody>
                 </table>
             </div>
@@ -98,7 +100,7 @@
                     recentWashes = washRes.recentWashes || [];
                     updateStats(); renderUI(); renderHistoryTable();
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error("Error Scope:", e); }
 
             try {
                 const accRes = await fetch(ACCESSORIES_API).then(res => res.json());
@@ -107,12 +109,13 @@
                     setupFilters(accessoriesData);
                     displayAccessories(accessoriesData);
                 }
-            } catch (e) { console.error(e); }
-            document.getElementById('last-update').innerText = `Updated: ${new Date().toLocaleTimeString('th-TH')}`;
+            } catch (e) { console.error("Error Acc:", e); }
+            document.getElementById('last-update').innerText = `อัปเดตล่าสุด: ${new Date().toLocaleTimeString('th-TH')}`;
         }
 
         function updateStats() {
-            const total = scopeData.length, ready = scopeData.filter(s => s.status.includes('พร้อม')).length;
+            const total = scopeData.length;
+            const ready = scopeData.filter(s => (s.status || "").includes('พร้อม')).length;
             const percent = total > 0 ? Math.round((ready / total) * 100) : 0;
             document.getElementById('count-all').innerText = total;
             document.getElementById('count-ready').innerText = ready;
@@ -123,38 +126,66 @@
 
         function renderUI() {
             const term = document.getElementById('search-input').value.toLowerCase();
-            let filtered = scopeData.filter(s => s.code.toLowerCase().includes(term));
-            if (currentFilter === 'ready') filtered = filtered.filter(s => s.status.includes('พร้อม'));
-            if (currentFilter === 'repair') filtered = filtered.filter(s => !s.status.includes('พร้อม'));
-            document.getElementById('scope-grid').innerHTML = filtered.map(scope => `
-                <div class="card bg-white p-8 border border-slate-100 shadow-sm">
-                    <h3 class="text-3xl font-black text-slate-800 mb-2">${scope.code}</h3>
-                    <p class="text-sm font-bold text-slate-400 mb-6">${scope.brand} • ${scope.diameter}mm</p>
-                    <div class="bg-blue-50/40 p-5 rounded-3xl flex justify-between items-center">
-                        <span class="text-4xl font-black text-blue-800">${usageStats[scope.code] || 0}</span>
-                    </div>
-                </div>`).join('');
+            let filtered = scopeData.filter(s => (s.code||"").toLowerCase().includes(term) || (s.brand||"").toLowerCase().includes(term));
+            
+            if (currentFilter === 'ready') filtered = filtered.filter(s => (s.status||"").includes('พร้อม'));
+            if (currentFilter === 'repair') filtered = filtered.filter(s => !(s.status||"").includes('พร้อม'));
+
+            document.getElementById('scope-grid').innerHTML = filtered.map(scope => {
+                const isReady = (scope.status || "").includes("พร้อม");
+                return `
+                    <div class="card bg-white p-8 border border-slate-100 shadow-sm flex flex-col h-full">
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <h3 class="text-3xl font-black text-slate-800 leading-none mb-2">${scope.code}</h3>
+                                <span class="text-[10px] bg-slate-100 text-slate-500 px-3 py-1 rounded-lg font-black uppercase italic">${scope.brand}</span>
+                            </div>
+                            <span class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase ${isReady ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">
+                                ${scope.status}
+                            </span>
+                        </div>
+                        <p class="text-sm font-bold text-slate-400 mb-6">${scope.type} • ${scope.diameter}mm</p>
+                        <div class="bg-blue-50/40 p-5 rounded-3xl mb-6 flex justify-between items-center">
+                            <span class="text-[11px] font-black text-blue-300 uppercase">Usage</span>
+                            <span class="text-4xl font-black text-blue-800">${usageStats[scope.code] || 0}</span>
+                        </div>
+                        ${!isReady ? `
+                            <div class="bg-rose-50 p-4 rounded-2xl mb-6 text-[12px] font-bold">
+                                <div class="flex justify-between mb-1"><span>วันที่ส่ง:</span><span class="text-rose-700">${scope.sentDate || '-'}</span></div>
+                                <div class="flex justify-between"><span>กำหนดคืน:</span><span class="text-rose-700">${scope.returnDate || '-'}</span></div>
+                            </div>
+                        ` : ''}
+                        <div class="mt-auto pt-6 border-t border-slate-50 flex justify-between items-center">
+                            <div><p class="text-[9px] text-slate-300 font-black uppercase">Serial Number</p><p class="text-xl font-black text-slate-700">${scope.serial}</p></div>
+                            <div class="w-4 h-4 ${isReady ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'} rounded-full"></div>
+                        </div>
+                    </div>`;
+            }).join('');
         }
 
         function renderHistoryTable() {
             document.getElementById('wash-log-table-body').innerHTML = recentWashes.map(w => `
-                <tr class="bg-white"><td class="px-6 py-5 rounded-l-3xl">${w.date}</td><td class="text-center font-black">${w.code}</td><td class="rounded-r-3xl font-black">${w.sn}</td></tr>`).join('');
+                <tr class="bg-white"><td class="px-6 py-5 rounded-l-3xl text-slate-400 font-bold text-sm">${w.date}</td><td class="text-center font-black"><span class="px-4 py-2 bg-slate-50 rounded-xl italic">${w.code}</span></td><td class="px-6 py-5 rounded-r-3xl font-black text-lg">${w.sn}</td></tr>`).join('');
         }
 
         function setupFilters(data) {
             const procedures = ['ทั้งหมด', ...new Set(data.map(item => item.procedure))];
-            document.getElementById('filter-buttons').innerHTML = procedures.map(proc => `<button onclick="filterByProcedure('${proc}', this)" class="filter-btn px-6 py-3 rounded-2xl border font-black uppercase text-[10px]">${proc}</button>`).join('');
-            document.querySelector('.filter-btn').classList.add('active');
+            document.getElementById('filter-buttons').innerHTML = procedures.map(proc => `<button onclick="filterByProcedure('${proc}', this)" class="filter-btn whitespace-nowrap px-6 py-3 rounded-2xl border bg-white text-slate-400 font-black uppercase text-[10px] tracking-widest">${proc}</button>`).join('');
+            if(document.querySelector('.filter-btn')) document.querySelector('.filter-btn').classList.add('active');
         }
 
         function displayAccessories(items) {
             document.getElementById('accessories-grid').innerHTML = items.map(item => `
-                <div class="bg-white p-5 rounded-[2.5rem] shadow-sm border border-slate-50">
-                    <img src="${item.imageURL || 'https://via.placeholder.com/150'}" class="w-full aspect-square object-contain mb-5">
-                    <h4 class="font-black text-[13px] uppercase">${item.name}</h4>
-                    <div class="flex justify-between mt-4 bg-slate-50 p-3 rounded-2xl">
-                        <span class="font-black text-slate-400 text-[10px]">${item.itemCode}</span>
-                        <span class="font-black text-emerald-600 text-[10px]">Qty: ${item.qty}</span>
+                <div class="bg-white p-5 rounded-[2.5rem] shadow-sm border border-slate-50 flex flex-col h-full">
+                    <div class="aspect-square mb-5 overflow-hidden rounded-[2rem] bg-slate-50 p-6 flex items-center justify-center">
+                        <img src="${item.imageURL || 'https://via.placeholder.com/150'}" class="max-w-full max-h-full object-contain">
+                    </div>
+                    <div class="text-[9px] font-black text-emerald-500 uppercase mb-2">${item.procedure}</div>
+                    <h4 class="font-black text-slate-800 text-[13px] mb-1 line-clamp-1">${item.name}</h4>
+                    <p class="text-[10px] font-bold text-slate-300 mb-4">${item.specs}</p>
+                    <div class="mt-auto flex justify-between bg-slate-50 p-3 rounded-2xl">
+                        <span class="font-black text-slate-400 text-[9px]">${item.itemCode}</span>
+                        <span class="font-black ${item.qty > 5 ? 'text-emerald-600' : 'text-rose-500'} text-[10px]">Stock: ${item.qty}</span>
                     </div>
                 </div>`).join('');
         }
@@ -165,8 +196,18 @@
             btnEl.classList.add('active');
         }
 
-        function filterData(t) { currentFilter = t; renderUI(); }
-        document.getElementById('search-input').addEventListener('input', renderUI);
+        function filterData(t) { currentFilter = t; renderUI(); 
+            ['btn-all', 'btn-ready', 'btn-repair'].forEach(id => {
+                document.getElementById(id).className = id.includes(t) ? "px-8 py-3 rounded-2xl bg-blue-600 text-white font-bold text-sm shadow-lg" : "px-8 py-3 rounded-2xl text-slate-400 font-bold text-sm";
+            });
+        }
+
+        document.getElementById('search-input').addEventListener('input', () => { 
+            renderUI();
+            const t = document.getElementById('search-input').value.toLowerCase();
+            displayAccessories(accessoriesData.filter(a => a.name.toLowerCase().includes(t) || a.itemCode.toLowerCase().includes(t)));
+        });
+
         fetchAllData(); setInterval(fetchAllData, 30000);
     </script>
 </body>
