@@ -53,7 +53,7 @@
                     <thead class="sticky top-0 bg-white shadow-sm z-10 border-b border-slate-50">
                         <tr class="text-[10px] text-slate-300 font-black uppercase italic">
                             <th class="pb-4 pr-4">วันที่/เวลา</th>
-                            <th class="pb-4 pr-4">รหัสกล้อง</th>
+                            <th class="pb-4 pr-4 text-center">รหัส</th>
                             <th class="pb-4">Serial Number</th>
                         </tr>
                     </thead>
@@ -73,7 +73,6 @@
     </div>
 
     <script>
-        // เปลี่ยน API เป็นลิงก์ล่าสุดที่พี่ส่งมา
         const API_URL = "https://script.google.com/macros/s/AKfycbxGUOFckc_u-oQqSJZaKLq2zWSn6Ep5jqCx7Q-X-5BeRLGjjo8OTn7KzxkzJwEsr6uI/exec";
         const WASH_LOG_API = "https://script.google.com/macros/s/AKfycbwUY36cqp5ns2dM5LgT0_MqmwH8k5riXXLDEb3JWo7kzfu81rumQ1opt5URik1H2fCC/exec";
         const ACCESSORIES_API = "https://script.google.com/macros/s/AKfycbz4NQzTP25uJWuiIfdewY3gzLLYyGD0KIgfIQIgVMTe3xGQqkCiq4cRl7Z2fCUPf-tF/exec";
@@ -101,116 +100,4 @@
             const readyCount = allScopes.filter(s => (s.status||"").includes("พร้อม")).length;
             document.getElementById('ready-percent-label').innerText = `พร้อมใช้ ${total > 0 ? Math.round((readyCount/total)*100) : 0}%`;
             document.getElementById('c-all').innerText = total;
-            document.getElementById('c-ready').innerText = readyCount;
-            document.getElementById('c-repair').innerText = total - readyCount;
-
-            let filteredScopes = allScopes.filter(s => (s.code||"").toLowerCase().includes(search) || (s.serial||"").toLowerCase().includes(search));
-            if (currentFilter === 'ready') filteredScopes = filteredScopes.filter(s => (s.status||"").includes("พร้อม"));
-            if (currentFilter === 'repair') filteredScopes = filteredScopes.filter(s => !(s.status||"").includes("พร้อม"));
-
-            document.getElementById('scope-list').innerHTML = filteredScopes.map(s => {
-                const isReady = (s.status||"").includes("พร้อม");
-                
-                // ส่วนแสดงผลวันที่เฉพาะตอนส่งซ่อม
-                const repairDatesHtml = !isReady ? `
-                    <div class="grid grid-cols-2 gap-4 mb-6 pt-4 border-t border-dashed border-slate-100">
-                        <div>
-                            <p class="date-label mb-1">📅 วันที่ส่งซ่อม</p>
-                            <p class="date-value">${s.repairDate || '-'}</p>
-                        </div>
-                        <div>
-                            <p class="date-label mb-1 text-blue-400">🔙 วันที่จะกลับมา</p>
-                            <p class="date-value text-blue-600">${s.returnDate || '-'}</p>
-                        </div>
-                    </div>
-                ` : '';
-
-                // ส่วนแสดง Indication (ข้อบ่งชี้)
-                const indicationHtml = s.indication ? `
-                    <p class="text-[10px] font-bold text-rose-400 mt-1 italic leading-tight">⚠️ ${s.indication}</p>
-                ` : '';
-
-                return `
-                <div class="card-main p-6 md:p-8 animate-in border border-slate-50">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h3 class="text-3xl font-black text-slate-800 tracking-tighter leading-none mb-1 uppercase italic">${s.code}</h3>
-                            <span class="px-2 py-0.5 bg-slate-100 text-slate-400 rounded text-[9px] font-black uppercase italic">${s.brand || 'FUJINON'}</span>
-                        </div>
-                        <div class="text-right">
-                            <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${isReady ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">● ${isReady ? 'พร้อมใช้' : 'ส่งซ่อม'}</span>
-                            ${indicationHtml}
-                        </div>
-                    </div>
-                    <div class="usage-box flex justify-between items-center mb-6 shadow-sm">
-                        <span class="text-[10px] font-black text-blue-400 uppercase italic leading-none">การใช้งาน (L)</span>
-                        <div class="flex items-baseline gap-1">
-                            <span class="text-4xl font-black text-blue-700 leading-none">${s.usage || 0}</span>
-                            <span class="text-[10px] font-bold text-blue-300 tracking-tighter">ครั้ง</span>
-                        </div>
-                    </div>
-                    
-                    ${repairDatesHtml}
-
-                    <div class="mt-auto pt-4 border-t border-slate-50 flex justify-between items-center">
-                        <div>
-                            <p class="text-[8px] font-black text-slate-300 uppercase italic mb-1 tracking-widest leading-none">Serial Number</p>
-                            <p class="text-xl font-black text-slate-800 tracking-tight leading-none">${s.serial || '-'}</p>
-                        </div>
-                        <div class="w-3 h-3 ${isReady ? 'bg-emerald-400 shadow-[0_0_10px_#4ade80]' : 'bg-rose-400'} rounded-full animate-pulse"></div>
-                    </div>
-                </div>`;
-            }).join('');
-
-            const summaryTableBody = document.getElementById('wash-summary-body');
-            summaryTableBody.innerHTML = washLogs.map(w => `
-                <tr class="text-[11px] font-bold text-slate-600 border-b border-slate-50 hover:bg-white transition-colors">
-                    <td class="py-4 text-slate-400 italic">${w.date}</td>
-                    <td class="py-4"><span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg uppercase italic font-black text-[10px]">${w.code}</span></td>
-                    <td class="py-4 text-slate-800 font-black tracking-tight">${w.sn}</td>
-                </tr>
-            `).join('');
-
-            let filteredAcc = accData.filter(i => (i.name||"").toLowerCase().includes(search) || (i.itemCode||"").toLowerCase().includes(search));
-            if (currentAccType !== 'ทั้งหมด') filteredAcc = filteredAcc.filter(i => i.procedure === currentAccType);
-            document.getElementById('accessories-list').innerHTML = filteredAcc.map(i => `
-                <details class="group bg-white/95 rounded-[2.5rem] overflow-hidden border border-emerald-900/10 shadow-lg animate-in">
-                    <summary class="p-6 flex items-center justify-between cursor-pointer list-none">
-                        <div class="flex items-center gap-6">
-                            <div class="w-16 h-16 rounded-2xl bg-white flex items-center justify-center p-1 border border-slate-100 shadow-md overflow-hidden">
-                                <img src="${i.imageURL || '📦'}" class="w-full h-full object-contain" onerror="this.src='https://via.placeholder.com/100?text=📦'">
-                            </div>
-                            <div>
-                                <h4 class="text-base font-bold text-slate-800 leading-tight">${i.name || 'N/A'}</h4>
-                                <p class="text-[10px] font-bold text-emerald-600/50 uppercase mt-1 tracking-widest">${i.itemCode || ''}</p>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-2xl font-black ${i.qty > 5 ? 'text-emerald-600' : 'text-rose-600'}">${i.qty || 0}</p>
-                            <p class="text-[9px] font-bold text-slate-400 uppercase">เหลือในสต็อก</p>
-                        </div>
-                    </summary>
-                </details>`).join('');
-        }
-
-        function renderAccFilters() {
-            const container = document.getElementById('acc-filter');
-            const types = ['ทั้งหมด', ...new Set(accData.map(i => i.procedure).filter(p => p))];
-            container.innerHTML = types.map(t => `<button onclick="filterAccType('${t}', this)" class="acc-tab whitespace-nowrap ${t === currentAccType ? 'bg-emerald-400 text-[#0b3d33]' : 'bg-[#144d44] text-emerald-200'}">${t}</button>`).join('');
-        }
-
-        function filterAccType(type, btn) { currentAccType = type; renderAccFilters(); updateUI(); }
-        function setFilter(f) {
-            currentFilter = f;
-            ['all', 'ready', 'repair'].forEach(t => {
-                const btn = document.getElementById('btn-' + t);
-                btn.className = t === f ? "flex-shrink-0 px-6 py-2.5 rounded-xl bg-slate-800 text-white font-bold text-xs uppercase shadow-md" : "flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-slate-500 font-bold text-xs border border-slate-200 uppercase shadow-sm";
-            });
-            updateUI();
-        }
-
-        document.getElementById('search-input').addEventListener('input', updateUI);
-        init(); setInterval(init, 30000);
-    </script>
-</body>
-</html>
+            document.getElementById('c-ready').innerText =
