@@ -45,7 +45,7 @@
             <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black italic shadow-md uppercase text-[10px]">TODAY</div>
-                    <h2 class="text-xl font-black text-slate-800 uppercase italic">Daily Wash Summary</h2>
+                    <h2 class="text-xl font-black text-slate-800 uppercase italic tracking-tighter">Daily Wash Summary</h2>
                 </div>
                 <div class="text-[11px] font-bold text-slate-500 bg-white px-4 py-1 rounded-full border border-slate-100 italic" id="current-date-display">11/5/2026</div>
             </div>
@@ -68,7 +68,7 @@
         <div class="bg-[#0b3d33] text-white p-6 md:p-10 rounded-[2.5rem] shadow-xl mb-20 animate-in">
             <div class="mb-6">
                 <h2 class="text-2xl font-black italic text-emerald-400 uppercase leading-none">Accessories Catalog</h2>
-                <p class="text-emerald-200/50 text-[10px] font-bold uppercase tracking-widest mt-1 italic leading-none italic">Inventory Management</p>
+                <p class="text-emerald-200/50 text-[10px] font-bold uppercase tracking-widest mt-1 italic leading-none">Inventory Management</p>
             </div>
             <div class="relative mb-6">
                 <input type="text" id="acc-search" oninput="updateUI()" placeholder="ค้นหาชื่ออุปกรณ์ หรือรหัสสินค้า..." class="w-full bg-[#144d44] border border-emerald-800/50 rounded-2xl p-4 pl-12 text-sm text-emerald-100 placeholder-emerald-800 outline-none focus:ring-2 focus:ring-emerald-500 font-bold">
@@ -94,41 +94,46 @@
                     fetch(ACCESSORIES_API).then(r => r.json())
                 ]);
                 allScopes = sRes.scopes || sRes || [];
-                washLogsRaw = wRes.recentWashes || wRes || []; // รองรับทั้งสองรูปแบบ
+                // ล้างข้อมูล washLogs ให้เป็น array เสมอ
+                washLogsRaw = Array.isArray(wRes) ? wRes : (wRes.recentWashes || []);
                 accData = aRes || [];
                 updateUI();
                 renderAccFilters();
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error("Error Loading Data:", e); }
         }
 
         function updateUI() {
-            const search = document.getElementById('search-input').value.toLowerCase().trim();
-            const accSearch = document.getElementById('acc-search').value.toLowerCase().trim();
+            const searchInput = document.getElementById('search-input').value.toLowerCase().trim();
+            const accSearchInput = document.getElementById('acc-search').value.toLowerCase().trim();
             
             const usageBySN = {};
             const todaySummary = {};
-            const todayStr = "11/5/2026"; // ล็อกวันที่ตามชีทพี่เพื่อให้เห็นผลทันที
-            document.getElementById('current-date-display').innerText = todayStr;
+            const targetDate = "11/5/2026"; // ล็อกวันที่ตามชีทพี่ชินาภา
+            document.getElementById('current-date-display').innerText = targetDate;
 
-            // Mapping: ค้นหาชื่อ Key ที่เป็นภาษาไทยจากชีทพี่
-            washLogsRaw.forEach(w => {
-                // ดึงค่า S/N (รองรับทั้ง key 'sn' หรือ 'Serial Number')
-                const sn = (w.sn || w['Serial Number'] || "").toString().trim().toUpperCase();
-                if (!sn) return;
+            // Logic: อ่านข้อมูล Washlog โดยไม่สนชื่อคอลัมน์ (นับตามตำแหน่ง A, B, C)
+            washLogsRaw.forEach(row => {
+                // ดึงค่าตามลำดับ: คอลัมน์ A (วันที่), B (รหัส), C (SN)
+                const values = Object.values(row);
+                const dateVal = (values[0] || "").toString().trim();
+                const codeVal = (values[1] || "").toString().trim();
+                const snVal = (values[2] || "").toString().trim().toUpperCase();
 
-                // 1. นับ Usage สะสมทั้งหมด (ทุกบรรทัดที่มี S/N นี้)
-                usageBySN[sn] = (usageBySN[sn] || 0) + 1;
+                if (!snVal) return;
 
-                // 2. เช็คข้อมูลวันนี้ (รองรับทั้ง key 'date' หรือ 'วันที่ล้าง')
-                const logDate = (w.date || w['วันที่ล้าง'] || "").toString().trim();
-                if (logDate.includes(todayStr)) {
-                    if (!todaySummary[sn]) {
-                        todaySummary[sn] = { code: (w.code || w['รหัสกล้อง'] || ""), count: 0 };
+                // 1. นับ Usage สะสม (ทุกบรรทัดที่มี SN นี้)
+                usageBySN[snVal] = (usageBySN[snVal] || 0) + 1;
+
+                // 2. สรุปรายวัน (ถ้าวันที่ในบรรทัดนั้นมี 11/5/2026)
+                if (dateVal.includes(targetDate)) {
+                    if (!todaySummary[snVal]) {
+                        todaySummary[snVal] = { code: codeVal, count: 0 };
                     }
-                    todaySummary[sn].count += 1;
+                    todaySummary[snVal].count += 1;
                 }
             });
 
+            // อัปเดต % ความพร้อม
             const total = allScopes.length;
             const readyCount = allScopes.filter(s => (s.status||"").includes("พร้อม")).length;
             document.getElementById('ready-percent-label').innerText = `พร้อมใช้ ${total > 0 ? Math.round((readyCount/total)*100) : 0}%`;
@@ -136,14 +141,14 @@
             document.getElementById('c-ready').innerText = readyCount;
             document.getElementById('c-repair').innerText = total - readyCount;
 
-            // วาดรายการกล้อง
-            let filteredScopes = allScopes.filter(s => (s.code||"").toLowerCase().includes(search) || (s.serial||"").toLowerCase().includes(search));
+            // 1. วาดรายการกล้อง
+            let filteredScopes = allScopes.filter(s => (s.code||"").toLowerCase().includes(searchInput) || (s.serial||"").toLowerCase().includes(searchInput));
             if (currentFilter === 'ready') filteredScopes = filteredScopes.filter(s => (s.status||"").includes("พร้อม"));
             if (currentFilter === 'repair') filteredScopes = filteredScopes.filter(s => !(s.status||"").includes("พร้อม"));
 
             document.getElementById('scope-list').innerHTML = filteredScopes.map(s => {
                 const isReady = (s.status||"").includes("พร้อม");
-                const snKey = (s.serial || "").toString().trim().toUpperCase();
+                const currentSN = (s.serial || "").toString().trim().toUpperCase();
                 return `
                 <div class="card-main p-6 md:p-8 animate-in flex flex-col h-full border border-slate-50">
                     <div class="flex justify-between items-start mb-4">
@@ -152,25 +157,25 @@
                     </div>
                     <div class="usage-box flex justify-between items-center mb-6 shadow-sm border-blue-50">
                         <span class="text-[10px] font-black text-blue-400 uppercase italic">Usage History</span>
-                        <div class="flex items-baseline gap-1"><span class="text-4xl font-black text-blue-700 leading-none">${usageBySN[snKey] || 0}</span><span class="text-[10px] font-bold text-blue-300">ครั้ง</span></div>
+                        <div class="flex items-baseline gap-1"><span class="text-4xl font-black text-blue-700 leading-none">${usageBySN[currentSN] || 0}</span><span class="text-[10px] font-bold text-blue-300">ครั้ง</span></div>
                     </div>
                     <div class="mt-auto pt-6 border-t border-slate-50 flex justify-between items-center">
                         <div><p class="text-[8px] font-black text-slate-300 uppercase italic mb-1 leading-none tracking-widest">Serial Number</p>
                         <p class="text-xl font-black text-slate-800 tracking-tight leading-none">${s.serial || '-'}</p></div>
-                        <div class="w-3 h-3 ${isReady ? 'bg-emerald-400 shadow-[0_0_10px_#4ade80]' : 'bg-rose-400'} rounded-full"></div>
+                        <div class="w-3 h-3 ${isReady ? 'bg-emerald-400 shadow-[0_0_10px_#4ade80]' : 'bg-rose-400'} rounded-full animate-pulse"></div>
                     </div>
-                    ${!isReady ? `<div class="mt-4 p-4 bg-rose-50 rounded-2xl text-[11px] font-bold flex justify-between border border-rose-100"><span>ส่งซ่อม: ${s.sentDate || '-'}</span><span class="text-rose-700 underline font-black">คืน: ${s.returnDate || '-'}</span></div>` : ''}
+                    ${!isReady ? `<div class="mt-4 p-4 bg-rose-50 rounded-2xl text-[11px] font-bold flex justify-between border border-rose-100 animate-in"><span>ส่งซ่อม: ${s.sentDate || '-'}</span><span class="text-rose-700 underline font-black italic">คืน: ${s.returnDate || '-'}</span></div>` : ''}
                 </div>`;
             }).join('');
 
-            // วาดตาราง Daily Summary
+            // 2. วาดตาราง Daily Summary
             const summaryKeys = Object.keys(todaySummary);
             if (summaryKeys.length > 0) {
                 document.getElementById('no-wash-today').classList.add('hidden');
                 document.getElementById('daily-summary-body').innerHTML = summaryKeys.map(sn => `
-                    <tr class="text-[11px] font-bold text-slate-600 border-b border-slate-50">
+                    <tr class="text-[11px] font-bold text-slate-600 border-b border-slate-50 animate-in">
                         <td class="py-4"><span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg uppercase italic font-black">${todaySummary[sn].code}</span></td>
-                        <td class="py-4 text-slate-800 font-black">${sn}</td>
+                        <td class="py-4 text-slate-800 font-black tracking-tight">${sn}</td>
                         <td class="py-4 text-center"><span class="bg-emerald-100 text-emerald-700 px-4 py-1 rounded-full text-xs font-black">${todaySummary[sn].count} ครั้ง</span></td>
                         <td class="py-4 text-right text-emerald-500 font-black italic">ล้างเสร็จแล้ว</td>
                     </tr>`).join('');
@@ -179,8 +184,8 @@
                 document.getElementById('no-wash-today').classList.remove('hidden');
             }
 
-            // Accessories...
-            let filteredAcc = accData.filter(i => (i.name||"").toLowerCase().includes(accSearch) || (i.itemCode||"").toLowerCase().includes(accSearch));
+            // 3. วาด Accessories
+            let filteredAcc = accData.filter(i => (i.name||"").toLowerCase().includes(accSearchInput) || (i.itemCode||"").toLowerCase().includes(accSearchInput));
             if (currentAccType !== 'ทั้งหมด') filteredAcc = filteredAcc.filter(i => i.procedure === currentAccType);
             document.getElementById('accessories-list').innerHTML = filteredAcc.map(i => `
                 <details class="group bg-white/95 rounded-[1.5rem] overflow-hidden border border-emerald-900/10 shadow-lg animate-in">
@@ -198,10 +203,10 @@
                         <div class="flex flex-col md:flex-row gap-6 mt-4">
                             <div class="w-full md:w-56 h-56 rounded-3xl bg-white border border-slate-200 flex items-center justify-center p-4 shadow-sm"><img src="${i.imageURL || 'https://via.placeholder.com/100?text=📦'}" class="max-w-full max-h-full object-contain"></div>
                             <div class="flex-grow space-y-4">
-                                <div><p class="text-[9px] font-bold text-slate-400 uppercase italic tracking-widest leading-none mb-1">Product Code</p><p class="text-sm font-black text-slate-800 uppercase leading-none">${i.itemCode || '-'}</p></div>
+                                <div><p class="text-[9px] font-bold text-slate-400 uppercase italic tracking-widest leading-none mb-1">Product Code</p><p class="text-sm font-black text-slate-800 uppercase leading-none italic">${i.itemCode || '-'}</p></div>
                                 <div><p class="text-[9px] font-bold text-slate-400 uppercase italic tracking-widest leading-none mb-1">Specs / Size</p><p class="text-sm font-bold text-slate-600 leading-none">${i.specs || '-'}</p></div>
                                 <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 shadow-inner">
-                                    <p class="text-[9px] font-bold text-emerald-500 uppercase italic mb-1 tracking-widest">Indication (ข้อบ่งใช้):</p>
+                                    <p class="text-[9px] font-bold text-emerald-500 uppercase italic mb-1 tracking-widest">Clinical Indication (ข้อบ่งใช้):</p>
                                     <p class="text-sm font-bold text-slate-700 leading-relaxed">${i.indication || '-'}</p>
                                 </div>
                             </div>
