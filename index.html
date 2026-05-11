@@ -33,9 +33,9 @@
         <div class="sticky-header py-2 mb-8 space-y-3">
             <input type="text" id="search-input" placeholder="ค้นหา S/N หรือ รหัสกล้อง..." class="w-full p-4 rounded-2xl border-none shadow-lg outline-none font-bold text-slate-700">
             <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                <button onclick="setFilter('all')" id="btn-all" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-slate-800 text-white font-bold text-xs uppercase shadow-md tracking-widest italic">ทั้งหมด (<span id="c-all">0</span>)</button>
-                <button onclick="setFilter('ready')" id="btn-ready" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-slate-500 font-bold text-xs border border-slate-200 uppercase shadow-sm tracking-widest italic">พร้อมใช้ (<span id="c-ready">0</span>)</button>
-                <button onclick="setFilter('repair')" id="btn-repair" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-rose-500 font-bold text-xs border border-slate-200 uppercase shadow-sm tracking-widest italic">ส่งซ่อม (<span id="c-repair">0</span>)</button>
+                <button onclick="setFilter('all')" id="btn-all" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-slate-800 text-white font-bold text-xs uppercase shadow-md italic">ทั้งหมด (<span id="c-all">0</span>)</button>
+                <button onclick="setFilter('ready')" id="btn-ready" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-slate-500 font-bold text-xs border border-slate-200 uppercase shadow-sm italic">พร้อมใช้ (<span id="c-ready">0</span>)</button>
+                <button onclick="setFilter('repair')" id="btn-repair" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-rose-500 font-bold text-xs border border-slate-200 uppercase shadow-sm italic">ส่งซ่อม (<span id="c-repair">0</span>)</button>
             </div>
         </div>
 
@@ -47,15 +47,15 @@
                     <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black italic shadow-md uppercase text-[10px]">TODAY</div>
                     <h2 class="text-xl font-black text-slate-800 uppercase italic">Daily Wash Summary</h2>
                 </div>
-                <div class="text-[11px] font-bold text-slate-500 bg-white px-4 py-1 rounded-full border border-slate-100 italic" id="current-date-display"></div>
+                <div class="text-[11px] font-bold text-slate-500 bg-white px-4 py-1 rounded-full border border-slate-100 italic" id="current-date-display">11/5/2026</div>
             </div>
             <div class="overflow-x-auto no-scrollbar">
                 <table class="w-full text-left">
                     <thead class="bg-white">
                         <tr class="text-[10px] text-slate-300 font-black uppercase border-b border-slate-100 italic">
                             <th class="pb-4 pr-4">รหัสกล้อง</th>
-                            <th class="pb-4 pr-4">S/N</th>
-                            <th class="pb-4 text-center">ล้างวันนี้ (ครั้ง)</th>
+                            <th class="pb-4 pr-4">Serial Number</th>
+                            <th class="pb-4 text-center">ล้างวันนี้</th>
                             <th class="pb-4 text-right italic">สถานะ</th>
                         </tr>
                     </thead>
@@ -98,7 +98,7 @@
                 accData = aRes || [];
                 updateUI();
                 renderAccFilters();
-            } catch (e) { console.error("Init Error:", e); }
+            } catch (e) { console.error(e); }
         }
 
         function updateUI() {
@@ -108,27 +108,22 @@
             const usageBySN = {};
             const todaySummary = {};
 
-            // สร้างรูปแบบวันที่สำหรับเช็ค "วันนี้" (แบบ 11/5/2026 ตามในรูปพี่)
+            // รูปแบบวันที่วันนี้แบบไทย (ตรงกับในชีทพี่: 11/5/2026)
             const now = new Date();
-            const d = now.getDate();
-            const m = now.getMonth() + 1;
-            const y = now.getFullYear();
-            const todayStr1 = `${d}/${m}/${y}`; // 11/5/2026
-            const todayStr2 = `${d}/${m}/${y + 543}`; // เผื่อกรณี พ.ศ.
-            
-            document.getElementById('current-date-display').innerText = todayStr1;
+            const todayStr = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
+            document.getElementById('current-date-display').innerText = todayStr;
 
-            // Logic: นับ Usage และ สรุปรายวัน
+            // Logic: นับยอดล้างจาก S/N 100%
             washLogs.forEach(w => {
-                const sn = (w.sn || "").toString().trim().toUpperCase();
+                const sn = (w.sn || "").toString().trim().toUpperCase(); // ล้างช่องว่าง + ตัวใหญ่
                 if (!sn) return;
 
-                // 1. นับ Usage สะสมทั้งหมด (นับทุกบรรทัดที่มี S/N นี้)
+                // 1. ยอดสะสม: นับทุกบรรทัดที่เจอ S/N นี้
                 usageBySN[sn] = (usageBySN[sn] || 0) + 1;
 
-                // 2. เช็คข้อมูลของวันนี้ (เปรียบเทียบข้อความวันที่ตรงๆ)
+                // 2. ยอดวันนี้: เช็ควันที่จากชีทให้ตรงกับ todayStr
                 const logDate = (w.date || "").toString().trim();
-                if (logDate.includes(todayStr1) || logDate.includes(todayStr2)) {
+                if (logDate.includes(todayStr)) {
                     if (!todaySummary[sn]) {
                         todaySummary[sn] = { code: w.code, count: 0 };
                     }
@@ -136,7 +131,6 @@
                 }
             });
 
-            // อัปเดตยอดปุ่ม Counts
             const total = allScopes.length;
             const readyCount = allScopes.filter(s => (s.status||"").includes("พร้อม")).length;
             document.getElementById('ready-percent-label').innerText = `พร้อมใช้ ${total > 0 ? Math.round((readyCount/total)*100) : 0}%`;
@@ -152,41 +146,39 @@
             document.getElementById('scope-list').innerHTML = filteredScopes.map(s => {
                 const isReady = (s.status||"").includes("พร้อม");
                 const snKey = (s.serial || "").toString().trim().toUpperCase();
-                const usage = usageBySN[snKey] || 0; // ดึงยอดที่นับไว้
+                const usage = usageBySN[snKey] || 0;
                 return `
                 <div class="card-main p-6 md:p-8 animate-in flex flex-col h-full border border-slate-50">
                     <div class="flex justify-between items-start mb-4">
                         <div><h3 class="text-3xl font-black text-slate-800 tracking-tighter leading-none mb-1 uppercase italic">${s.code}</h3><span class="px-2 py-0.5 bg-slate-100 text-slate-400 rounded text-[9px] font-black uppercase italic">${s.brand || 'FUJINON'}</span></div>
-                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${isReady ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">● ${isReady ? 'พร้อมใช้งาน' : 'ส่งซ่อม'}</span>
+                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${isReady ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">● ${isReady ? 'พร้อมใช้' : 'ส่งซ่อม'}</span>
                     </div>
                     <div class="usage-box flex justify-between items-center mb-6 shadow-sm border-blue-50">
-                        <span class="text-[10px] font-black text-blue-400 uppercase italic">Usage History (S/N)</span>
+                        <span class="text-[10px] font-black text-blue-400 uppercase italic">Usage History</span>
                         <div class="flex items-baseline gap-1"><span class="text-4xl font-black text-blue-700 leading-none">${usage}</span><span class="text-[10px] font-bold text-blue-300">ครั้ง</span></div>
                     </div>
                     <div class="mt-auto pt-6 border-t border-slate-50 flex justify-between items-center">
-                        <div><p class="text-[8px] font-black text-slate-300 uppercase italic leading-none mb-1">Serial Number</p>
+                        <div><p class="text-[8px] font-black text-slate-300 uppercase italic mb-1 leading-none">Serial Number</p>
                         <p class="text-xl font-black text-slate-800 tracking-tight leading-none">${s.serial || '-'}</p></div>
-                        <div class="w-3 h-3 ${isReady ? 'bg-emerald-400 shadow-[0_0_10px_#4ade80]' : 'bg-rose-400'} rounded-full"></div>
+                        <div class="w-3 h-3 ${isReady ? 'bg-emerald-400 shadow-[0_0_10px_#4ade80]' : 'bg-rose-400'} rounded-full animate-pulse"></div>
                     </div>
-                    ${!isReady ? `<div class="mt-4 p-4 bg-rose-50 rounded-2xl text-[11px] font-bold flex justify-between border border-rose-100"><span>วันที่ส่งซ่อม: ${s.sentDate || '-'}</span><span class="text-rose-700 underline font-black italic">คืน: ${s.returnDate || '-'}</span></div>` : ''}
+                    ${!isReady ? `<div class="mt-4 p-4 bg-rose-50 rounded-2xl text-[11px] font-bold flex justify-between border border-rose-100"><span>ส่งซ่อม: ${s.sentDate || '-'}</span><span class="text-rose-700 underline font-black">คืน: ${s.returnDate || '-'}</span></div>` : ''}
                 </div>`;
             }).join('');
 
-            // วาดตาราง Daily Summary
-            const summaryTableBody = document.getElementById('daily-summary-body');
+            // วาดตารางสรุปรายวัน
             const summaryKeys = Object.keys(todaySummary);
             if (summaryKeys.length > 0) {
                 document.getElementById('no-wash-today').classList.add('hidden');
-                summaryTableBody.innerHTML = summaryKeys.map(sn => `
+                document.getElementById('daily-summary-body').innerHTML = summaryKeys.map(sn => `
                     <tr class="text-[11px] font-bold text-slate-600 border-b border-slate-50">
                         <td class="py-4"><span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg uppercase italic font-black">${todaySummary[sn].code}</span></td>
                         <td class="py-4 text-slate-800 font-black">${sn}</td>
-                        <td class="py-4 text-center"><span class="bg-emerald-100 text-emerald-700 px-4 py-1 rounded-full text-xs font-black">${todaySummary[sn].count} ครั้ง</span></td>
-                        <td class="py-4 text-right text-emerald-500 font-black italic">ล้างแล้ว</td>
-                    </tr>
-                `).join('');
+                        <td class="py-4 text-center"><span class="bg-emerald-100 text-emerald-700 px-4 py-1 rounded-full text-xs font-black">${todaySummary[sn].count}</span></td>
+                        <td class="py-4 text-right text-emerald-500 italic font-black">ล้างวันนี้แล้ว</td>
+                    </tr>`).join('');
             } else {
-                summaryTableBody.innerHTML = '';
+                document.getElementById('daily-summary-body').innerHTML = '';
                 document.getElementById('no-wash-today').classList.remove('hidden');
             }
 
@@ -197,8 +189,8 @@
                 <details class="group bg-white/95 rounded-[1.5rem] overflow-hidden border border-emerald-900/10 shadow-lg animate-in">
                     <summary class="p-5 flex items-center justify-between cursor-pointer list-none">
                         <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center p-1 border border-slate-100 shadow-inner overflow-hidden"><img src="${i.imageURL || 'https://via.placeholder.com/100?text=📦'}" class="w-full h-full object-contain"></div>
-                            <div><h4 class="text-sm font-bold text-slate-800 leading-tight">${i.name || 'N/A'}</h4><p class="text-[10px] font-bold text-emerald-600/50 uppercase italic leading-none mt-1">${i.procedure || '-'}</p></div>
+                            <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center p-1 border border-slate-100 overflow-hidden"><img src="${i.imageURL || 'https://via.placeholder.com/100?text=📦'}" class="w-full h-full object-contain"></div>
+                            <div><h4 class="text-sm font-bold text-slate-800 leading-tight">${i.name || 'N/A'}</h4><p class="text-[10px] font-bold text-emerald-600/50 uppercase italic mt-1 leading-none">${i.procedure || '-'}</p></div>
                         </div>
                         <div class="flex items-center gap-4">
                             <div class="text-right"><p class="text-[9px] font-bold text-slate-400 uppercase italic leading-none">Stock</p><p class="text-lg font-black ${i.qty > 5 ? 'text-emerald-600' : 'text-rose-600'}">${i.qty || 0}</p></div>
@@ -210,7 +202,7 @@
                             <div class="w-full md:w-56 h-56 rounded-3xl bg-white border border-slate-200 flex items-center justify-center p-4 shadow-sm"><img src="${i.imageURL || 'https://via.placeholder.com/100?text=📦'}" class="max-w-full max-h-full object-contain"></div>
                             <div class="flex-grow space-y-4">
                                 <div><p class="text-[9px] font-bold text-slate-400 uppercase italic tracking-widest leading-none mb-1">Product Code</p><p class="text-sm font-black text-slate-800 uppercase leading-none">${i.itemCode || '-'}</p></div>
-                                <div><p class="text-[9px] font-bold text-slate-400 uppercase italic tracking-widest leading-none mb-1">Specifications / Size</p><p class="text-sm font-bold text-slate-600 leading-none">${i.specs || '-'}</p></div>
+                                <div><p class="text-[9px] font-bold text-slate-400 uppercase italic tracking-widest leading-none mb-1">Specs / Size</p><p class="text-sm font-bold text-slate-600 leading-none">${i.specs || '-'}</p></div>
                                 <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 shadow-inner">
                                     <p class="text-[9px] font-bold text-emerald-500 uppercase italic mb-1 tracking-widest">Indication (ข้อบ่งใช้):</p>
                                     <p class="text-sm font-bold text-slate-700 leading-relaxed">${i.indication || '-'}</p>
