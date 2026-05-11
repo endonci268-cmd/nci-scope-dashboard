@@ -48,7 +48,7 @@
                     <thead class="sticky top-0 bg-white shadow-sm z-10">
                         <tr class="text-[10px] text-slate-300 font-black uppercase italic">
                             <th class="pb-4 pr-4">วันที่/เวลา</th>
-                            <th class="pb-4 pr-4">รหัสกล้อง</th>
+                            <th class="pb-4 pr-4 text-center">รหัสกล้อง</th>
                             <th class="pb-4">Serial Number</th>
                         </tr>
                     </thead>
@@ -73,10 +73,8 @@
 
         let allScopes = [], washLogs = [], accData = [];
 
-        // ฟังก์ชันขจัดสิ่งแปลกปลอมจากการ Copy ขั้นสูงสุด
         const superCleanSN = (str) => {
             if (!str) return "";
-            // แปลงเป็น String, ตัดช่องว่าง, เอาแค่ A-Z และ 0-9 เท่านั้น, ปรับเป็นตัวใหญ่
             return String(str).replace(/[^a-zA-Z0-9]/g, "").trim().toUpperCase();
         };
 
@@ -97,34 +95,34 @@
 
         function updateUI() {
             const search = document.getElementById('search-input').value.toLowerCase().trim();
-            const usageBySN = {};
             
-            // นับยอดล้างจาก S/N ที่ถูกทำความสะอาดแล้ว
-            washLogs.forEach(w => {
-                const cleanedLogSN = superCleanSN(w.sn);
-                if (cleanedLogSN) {
-                    usageBySN[cleanedLogSN] = (usageBySN[cleanedLogSN] || 0) + 1;
-                }
-            });
-
             const total = allScopes.length;
             const readyCount = allScopes.filter(s => (s.status||"").includes("พร้อม")).length;
             document.getElementById('ready-percent-label').innerText = `พร้อมใช้ ${total > 0 ? Math.round((readyCount/total)*100) : 0}%`;
 
             // Render Scope Cards
             let filteredScopes = allScopes.filter(s => (s.code||"").toLowerCase().includes(search) || superCleanSN(s.serial).includes(superCleanSN(search)));
+            
             document.getElementById('scope-list').innerHTML = filteredScopes.map(s => {
-                const cleanedMainSN = superCleanSN(s.serial);
                 const isReady = (s.status||"").includes("พร้อม");
+                
+                // --- จุดที่ปรับปรุง: ดึงยอด Usage จากคอลัมน์ L ในชีททะเบียนกล้อง ---
+                // โดยปกติ Google Apps Script จะส่งคอลัมน์ใหม่มาตามลำดับ พี่ต้องเช็กชื่อตัวแปรที่ส่งมาจากชีทคอลัมน์ L
+                // ผมใส่ตัวแปร s.usageCount เผื่อไว้ให้ก่อนครับ
+                const finalUsage = s.usageCount || 0; 
+
                 return `
                 <div class="card-main p-6 md:p-8 animate-in flex flex-col h-full border border-slate-50">
                     <div class="flex justify-between items-start mb-4">
-                        <div><h3 class="text-3xl font-black text-slate-800 uppercase italic">${s.code}</h3><span class="px-2 py-0.5 bg-slate-100 text-slate-400 rounded text-[9px] font-black uppercase italic tracking-widest">NCI SCOPE</span></div>
+                        <div><h3 class="text-3xl font-black text-slate-800 uppercase italic">${s.code}</h3><span class="px-2 py-0.5 bg-slate-100 text-slate-400 rounded text-[9px] font-black uppercase italic tracking-widest">${s.brand || 'FUJINON'}</span></div>
                         <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${isReady ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">● ${isReady ? 'พร้อมใช้' : 'ส่งซ่อม'}</span>
                     </div>
                     <div class="usage-box flex justify-between items-center mb-6">
                         <span class="text-[10px] font-black text-blue-400 uppercase italic leading-none tracking-widest">Usage History (S/N)</span>
-                        <div class="flex items-baseline gap-1"><span class="text-4xl font-black text-blue-700 leading-none">${usageBySN[cleanedMainSN] || 0}</span><span class="text-[10px] font-bold text-blue-300">ครั้ง</span></div>
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-4xl font-black text-blue-700 leading-none">${finalUsage}</span>
+                            <span class="text-[10px] font-bold text-blue-300">ครั้ง</span>
+                        </div>
                     </div>
                     <div class="mt-auto pt-6 border-t border-slate-50 flex justify-between items-center">
                         <div><p class="text-[8px] font-black text-slate-300 uppercase italic mb-1 leading-none">Serial Number</p><p class="text-xl font-black text-slate-800 tracking-tight leading-none">${s.serial || '-'}</p></div>
@@ -133,11 +131,11 @@
                 </div>`;
             }).join('');
 
-            // Render Wash Summary List
+            // Render Wash Summary List (ตารางที่พี่ชอบ)
             document.getElementById('wash-summary-body').innerHTML = washLogs.map(w => `
                 <tr class="text-[11px] font-bold text-slate-600 border-b border-slate-50">
-                    <td class="py-4 text-slate-400 italic">${w.date}</td>
-                    <td class="py-4 text-blue-600 font-black italic uppercase text-[10px]">${w.code}</td>
+                    <td class="py-4 text-slate-400 italic font-black text-[9px]">${w.date}</td>
+                    <td class="py-4 text-center"><span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg uppercase italic font-black text-[10px]">${w.code}</span></td>
                     <td class="py-4 text-slate-800 font-black">${w.sn}</td>
                 </tr>`).join('');
 
@@ -146,9 +144,9 @@
                 <div class="bg-white/95 rounded-[1.5rem] p-4 flex items-center justify-between shadow-lg border border-emerald-900/10">
                     <div class="flex items-center gap-4">
                         <div class="w-10 h-10 bg-slate-50 rounded-lg p-1 border border-slate-100 flex items-center justify-center overflow-hidden"><img src="${i.imageURL}" class="w-full h-full object-contain"></div>
-                        <div><h4 class="text-xs font-bold text-slate-800">${i.name}</h4><p class="text-[9px] font-bold text-emerald-600/50 uppercase">${i.procedure}</p></div>
+                        <div><h4 class="text-xs font-bold text-slate-800">${i.name}</h4><p class="text-[9px] font-bold text-emerald-600/50 uppercase italic leading-none mt-1">${i.procedure}</p></div>
                     </div>
-                    <div class="text-right leading-none"><p class="text-[8px] font-bold text-slate-400 uppercase italic">Stock</p><p class="text-lg font-black text-emerald-600 leading-none">${i.qty}</p></div>
+                    <div class="text-right leading-none font-black"><p class="text-[8px] font-bold text-slate-400 uppercase italic leading-none mb-1">Stock</p><p class="text-lg font-black text-emerald-600 leading-none italic">${i.qty}</p></div>
                 </div>`).join('');
         }
 
