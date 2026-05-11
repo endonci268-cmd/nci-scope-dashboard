@@ -33,9 +33,9 @@
         <div class="sticky-header py-2 mb-8 space-y-3">
             <input type="text" id="search-input" placeholder="ค้นหา S/N หรือ รหัสกล้อง..." class="w-full p-4 rounded-2xl border-none shadow-lg outline-none font-bold text-slate-700">
             <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                <button onclick="setFilter('all')" id="btn-all" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-slate-800 text-white font-bold text-xs uppercase shadow-md">ทั้งหมด (<span id="c-all">0</span>)</button>
-                <button onclick="setFilter('ready')" id="btn-ready" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-slate-500 font-bold text-xs border border-slate-200 uppercase shadow-sm">พร้อมใช้ (<span id="c-ready">0</span>)</button>
-                <button onclick="setFilter('repair')" id="btn-repair" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-rose-500 font-bold text-xs border border-slate-200 uppercase shadow-sm">ส่งซ่อม (<span id="c-repair">0</span>)</button>
+                <button onclick="setFilter('all')" id="btn-all" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-slate-800 text-white font-bold text-xs uppercase shadow-md tracking-widest">ทั้งหมด (<span id="c-all">0</span>)</button>
+                <button onclick="setFilter('ready')" id="btn-ready" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-slate-500 font-bold text-xs border border-slate-200 uppercase shadow-sm tracking-widest">พร้อมใช้ (<span id="c-ready">0</span>)</button>
+                <button onclick="setFilter('repair')" id="btn-repair" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-rose-500 font-bold text-xs border border-slate-200 uppercase shadow-sm tracking-widest">ส่งซ่อม (<span id="c-repair">0</span>)</button>
             </div>
         </div>
 
@@ -45,17 +45,17 @@
             <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 font-black italic shadow-sm">LOG</div>
-                    <h2 class="text-xl font-black text-slate-800 uppercase italic">Daily Wash Log</h2>
+                    <h2 class="text-xl font-black text-slate-800 uppercase italic">Wash Log History</h2>
                 </div>
-                <span id="wash-count-today" class="text-[10px] font-black bg-blue-600 text-white px-3 py-1 rounded-full uppercase">0 ล้างวันนี้</span>
+                <span id="wash-count-today" class="text-[10px] font-black bg-blue-600 text-white px-3 py-1 rounded-full uppercase">0 รายการวันนี้</span>
             </div>
-            <div class="overflow-x-auto no-scrollbar max-h-[500px] overflow-y-auto">
+            <div class="overflow-x-auto no-scrollbar max-h-[400px] overflow-y-auto border-t border-slate-50">
                 <table class="w-full text-left">
-                    <thead class="sticky top-0 bg-white z-10">
-                        <tr class="text-[10px] text-slate-300 font-black uppercase border-b border-slate-50 italic">
-                            <th class="pb-4 pr-4">เวลาล้าง</th>
-                            <th class="pb-4 pr-4 text-center">รหัสกล้อง</th>
-                            <th class="pb-4">เลขซีเรียล (Serial Number)</th>
+                    <thead class="sticky top-0 bg-white shadow-sm">
+                        <tr class="text-[10px] text-slate-300 font-black uppercase italic">
+                            <th class="py-4 pr-4">วันเวลาที่ลงข้อมูล</th>
+                            <th class="py-4 pr-4 text-center">รหัสกล้อง</th>
+                            <th class="py-4">เลขซีเรียล (Serial Number)</th>
                         </tr>
                     </thead>
                     <tbody id="wash-log-body"></tbody>
@@ -63,13 +63,13 @@
             </div>
         </div>
 
-        <div class="bg-[#0b3d33] text-white p-6 md:p-10 rounded-[2.5rem] shadow-xl mb-20 animate-in overflow-hidden">
-            <div class="mb-6">
-                <h2 class="text-2xl font-black tracking-tight mb-2 uppercase italic text-emerald-400 leading-none">Accessories Catalog</h2>
-                <p class="text-emerald-200/50 text-[10px] font-bold uppercase tracking-widest italic">Inventory Management</p>
+        <div class="bg-[#0b3d33] text-white p-6 md:p-10 rounded-[2.5rem] shadow-xl mb-20 animate-in">
+            <div class="mb-6 text-center md:text-left">
+                <h2 class="text-2xl font-black italic text-emerald-400 uppercase leading-none">Accessories Catalog</h2>
+                <p class="text-emerald-200/50 text-[10px] font-bold uppercase tracking-widest mt-1 italic">Inventory Management</p>
             </div>
             <div class="relative mb-6">
-                <input type="text" id="acc-search" oninput="updateUI()" placeholder="ค้นหาชื่ออุปกรณ์ หรือรหัสสินค้า..." class="w-full bg-[#144d44] border border-emerald-800/50 rounded-2xl p-4 pl-12 text-sm text-emerald-100 placeholder-emerald-800 outline-none focus:ring-2 focus:ring-emerald-500">
+                <input type="text" id="acc-search" oninput="updateUI()" placeholder="ค้นหาชื่ออุปกรณ์ หรือรหัส..." class="w-full bg-[#144d44] border border-emerald-800/50 rounded-2xl p-4 pl-12 text-sm text-emerald-100 placeholder-emerald-800 outline-none focus:ring-2 focus:ring-emerald-500 font-bold">
                 <div class="absolute left-4 top-4">🔍</div>
             </div>
             <div id="acc-filter" class="flex gap-2 overflow-x-auto no-scrollbar mb-8 pb-1"></div>
@@ -95,11 +95,13 @@
                 allScopes = sRes.scopes || sRes || [];
                 washLogs = wRes.recentWashes || [];
                 
-                // Logic: นับจำนวนครั้งแยกตาม S/N (ทุกครั้งที่ปรากฏ)
+                // Logic ปรับปรุงใหม่: นับทุกแถวที่ S/N ตรงกัน (แก้ปัญหาขึ้นไม่ครบ)
                 washDataBySN = {};
                 washLogs.forEach(w => {
-                    const sn = (w.sn || "").toString().trim();
-                    if (sn) washDataBySN[sn] = (washDataBySN[sn] || 0) + 1;
+                    const sn = (w.sn || "").toString().trim().toUpperCase();
+                    if (sn) {
+                        washDataBySN[sn] = (washDataBySN[sn] || 0) + 1;
+                    }
                 });
 
                 accData = aRes || [];
@@ -125,37 +127,43 @@
 
             document.getElementById('scope-list').innerHTML = filteredScopes.map(s => {
                 const isReady = (s.status||"").includes("พร้อม");
-                const currentSN = (s.serial || "").toString().trim();
+                const snKey = (s.serial || "").toString().trim().toUpperCase();
                 return `
                 <div class="card-main p-6 md:p-8 animate-in flex flex-col h-full border border-slate-50">
                     <div class="flex justify-between items-start mb-4">
                         <div><h3 class="text-3xl font-black text-slate-800 tracking-tighter leading-none mb-1 uppercase italic">${s.code}</h3><span class="px-2 py-0.5 bg-slate-100 text-slate-400 rounded text-[9px] font-black uppercase italic">${s.brand || 'FUJINON'}</span></div>
-                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${isReady ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">● ${isReady ? 'พร้อมใช้' : 'ส่งซ่อม'}</span>
+                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${isReady ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">● ${isReady ? 'พร้อมใช้งาน' : 'ส่งซ่อม'}</span>
                     </div>
                     <div class="usage-box flex justify-between items-center mb-6 shadow-sm border-blue-50">
                         <span class="text-[10px] font-black text-blue-400 uppercase italic">Usage History (S/N)</span>
-                        <div class="flex items-baseline gap-1">
-                            <span class="text-4xl font-black text-blue-700">${washDataBySN[currentSN] || 0}</span>
-                            <span class="text-[10px] font-bold text-blue-300">ครั้ง</span>
-                        </div>
+                        <div class="flex items-baseline gap-1"><span class="text-4xl font-black text-blue-700">${washDataBySN[snKey] || 0}</span><span class="text-[10px] font-bold text-blue-300">ครั้ง</span></div>
                     </div>
                     <div class="mt-auto pt-6 border-t border-slate-50 flex justify-between items-center">
-                        <div><p class="text-[8px] font-black text-slate-300 uppercase italic tracking-widest leading-none mb-1">Serial Number</p>
+                        <div><p class="text-[8px] font-black text-slate-300 uppercase italic leading-none mb-1">Serial Number</p>
                         <p class="text-xl font-black text-slate-800 tracking-tight leading-none">${s.serial || '-'}</p></div>
                         <div class="w-3 h-3 ${isReady ? 'bg-emerald-400 shadow-[0_0_10px_#4ade80]' : 'bg-rose-400'} rounded-full"></div>
                     </div>
-                    ${!isReady ? `<div class="mt-4 p-4 bg-rose-50 rounded-2xl text-[11px] font-bold flex justify-between border border-rose-100 animate-in"><span>วันที่ส่งซ่อม: ${s.sentDate || '-'}</span><span class="text-rose-700 underline font-black italic">คืน: ${s.returnDate || '-'}</span></div>` : ''}
+                    ${!isReady ? `<div class="mt-4 p-4 bg-rose-50 rounded-2xl text-[11px] font-bold flex justify-between border border-rose-100"><span>วันที่ส่งซ่อม: ${s.sentDate || '-'}</span><span class="text-rose-700 underline font-black italic">คืน: ${s.returnDate || '-'}</span></div>` : ''}
                 </div>`;
             }).join('');
 
-            // กรองอุปกรณ์
+            // Wash Log History (แสดงทั้งหมด)
+            document.getElementById('wash-count-today').innerText = `${washLogs.length} รายการประวัติ`;
+            document.getElementById('wash-log-body').innerHTML = washLogs.map(w => `
+                <tr class="text-xs font-bold text-slate-500 border-b border-slate-50 transition-colors hover:bg-slate-50/50">
+                    <td class="py-5 pr-4 italic">${w.date}</td>
+                    <td class="py-5 text-center"><span class="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl italic font-black text-sm uppercase leading-none shadow-sm">${w.code}</span></td>
+                    <td class="py-5 font-black text-slate-800 text-sm pl-4">${w.sn}</td>
+                </tr>`).join('');
+
+            // Accessories
             let filteredAcc = accData.filter(i => (i.name||"").toLowerCase().includes(accSearch) || (i.itemCode||"").toLowerCase().includes(accSearch));
             if (currentAccType !== 'ทั้งหมด') filteredAcc = filteredAcc.filter(i => i.procedure === currentAccType);
             document.getElementById('accessories-list').innerHTML = filteredAcc.map(i => `
                 <details class="group bg-white/95 rounded-[1.5rem] overflow-hidden border border-emerald-900/10 shadow-lg animate-in">
                     <summary class="p-5 flex items-center justify-between cursor-pointer list-none">
                         <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center p-1 border border-slate-100 shadow-inner overflow-hidden"><img src="${i.imageURL || 'https://via.placeholder.com/100?text=📦'}" class="w-full h-full object-contain"></div>
+                            <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center p-1 border border-slate-100 overflow-hidden"><img src="${i.imageURL || 'https://via.placeholder.com/100?text=📦'}" class="w-full h-full object-contain"></div>
                             <div><h4 class="text-sm font-bold text-slate-800 leading-tight">${i.name || 'N/A'}</h4><p class="text-[10px] font-bold text-emerald-600/50 uppercase italic leading-none mt-1">${i.procedure || '-'}</p></div>
                         </div>
                         <div class="flex items-center gap-4">
@@ -177,18 +185,6 @@
                         </div>
                     </div>
                 </details>`).join('');
-
-            // ประวัติการล้างวันนี้ (แสดงรายการทั้งหมดของวันนี้)
-            const todayStr = new Date().toLocaleDateString('th-TH'); // ปรับตามรูปแบบวันที่ในชีทพี่
-            const todaysLogs = washLogs.filter(w => w.date.includes(todayStr) || w.date.includes(new Date().toLocaleDateString('en-GB')));
-            
-            document.getElementById('wash-count-today').innerText = `${washLogs.length} ล้างล่าสุด`; // หรือใช้ todaysLogs.length
-            document.getElementById('wash-log-body').innerHTML = washLogs.map(w => `
-                <tr class="text-xs font-bold text-slate-500 border-b border-slate-50">
-                    <td class="py-5 pr-4 italic whitespace-nowrap">${w.date.split(' ')[1] || w.date} น.</td>
-                    <td class="py-5 text-center"><span class="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl italic font-black text-sm uppercase leading-none shadow-sm">${w.code}</span></td>
-                    <td class="py-5 font-black text-slate-800 text-sm pl-4 tracking-tight">${w.sn}</td>
-                </tr>`).join('');
         }
 
         function renderAccFilters() {
