@@ -3,12 +3,11 @@
     const WASH_LOG_API = "https://script.google.com/macros/s/AKfycbwUY36cqp5ns2dM5LgT0_MqmwH8k5riXXLDEb3JWo7kzfu81rumQ1opt5URik1H2fCC/exec";
     const ACCESSORIES_API = "https://script.google.com/macros/s/AKfycbz4NQzTP25uJWuiIfdewY3gzLLYyGD0KIgfIQIgVMTe3xGQqkCiq4cRl7Z2fCUPf-tF/exec";
 
-    let allScopes = [];
-    let washLogs = [];
-    let accData = [];
-
-    let currentFilter = 'all';
-    let currentAccType = 'ทั้งหมด';
+    let allScopes = [],
+        washLogs = [],
+        accData = [],
+        currentFilter = 'all',
+        currentAccType = 'ทั้งหมด';
 
     async function init() {
         try {
@@ -19,22 +18,16 @@
                 fetch(ACCESSORIES_API).then(r => r.json())
             ]);
 
-            // รองรับหลายรูปแบบ response
-            allScopes = Array.isArray(sRes)
-                ? sRes
-                : (sRes.scopes || []);
+            allScopes = sRes.scopes || sRes || [];
 
+            // ✅ รองรับทั้ง array และ recentWashes
             washLogs = Array.isArray(wRes)
                 ? wRes
                 : (wRes.recentWashes || []);
 
-            accData = Array.isArray(aRes)
-                ? aRes
-                : [];
+            accData = aRes || [];
 
-            console.log("Scopes:", allScopes);
             console.log("Wash Logs:", washLogs);
-            console.log("Accessories:", accData);
 
             updateUI();
             renderAccFilters();
@@ -64,11 +57,11 @@
 
         washLogs.forEach(w => {
 
+            // ✅ รองรับชื่อ field จริงจาก Google Sheet
             const sn = (
                 w["Serial Number"] ||
                 w.sn ||
                 w.serial ||
-                w.SN ||
                 ""
             )
             .toString()
@@ -103,20 +96,19 @@
         // Filter Scope
         // =========================
 
-        let filteredScopes = allScopes.filter(s => {
+        let filteredScopes = allScopes.filter(s =>
 
-            return (
-                (s.code || "")
-                .toLowerCase()
-                .includes(search)
+            (s.code || "")
+            .toLowerCase()
+            .includes(search)
 
-                ||
+            ||
 
-                (s.serial || "")
-                .toLowerCase()
-                .includes(search)
-            );
-        });
+            (s.serial || "")
+            .toLowerCase()
+            .includes(search)
+
+        );
 
         if (currentFilter === 'ready') {
 
@@ -139,7 +131,8 @@
         document.getElementById('scope-list').innerHTML =
             filteredScopes.map(s => {
 
-                const isReady = (s.status || "").includes("พร้อม");
+                const isReady =
+                    (s.status || "").includes("พร้อม");
 
                 const snKey = (
                     s.serial ||
@@ -150,7 +143,8 @@
                 .trim()
                 .toUpperCase();
 
-                const usageCount = usageBySN[snKey] || 0;
+                const usageCount =
+                    usageBySN[snKey] || 0;
 
                 return `
                 <div class="card-main p-6 md:p-8 animate-in flex flex-col h-full border border-slate-50">
@@ -226,64 +220,46 @@
             document.getElementById('daily-summary-body');
 
         summaryTableBody.innerHTML =
-            washLogs.map(w => {
+            washLogs.map(w => `
 
-                const date =
-                    w.date ||
-                    w["วันที่ล้าง"] ||
-                    "-";
-
-                const code =
-                    w.code ||
-                    w["รหัสกล้อง"] ||
-                    "-";
-
-                const sn =
-                    w["Serial Number"] ||
-                    w.sn ||
-                    w.serial ||
-                    "-";
-
-                return `
                 <tr class="text-[11px] font-bold text-slate-600 border-b border-slate-50">
 
                     <td class="py-4 text-slate-400 italic">
-                        ${date}
+                        ${w.date || w["วันที่ล้าง"] || '-'}
                     </td>
 
                     <td class="py-4">
 
                         <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg uppercase italic font-black text-[10px]">
-                            ${code}
+                            ${w.code || w["รหัสกล้อง"] || '-'}
                         </span>
                     </td>
 
                     <td class="py-4 text-slate-800 font-black">
-                        ${sn}
+                        ${w["Serial Number"] || w.sn || '-'}
                     </td>
 
                 </tr>
-                `;
-            }).join('');
+
+            `).join('');
 
         // =========================
         // Accessories
         // =========================
 
-        let filteredAcc = accData.filter(i => {
+        let filteredAcc = accData.filter(i =>
 
-            return (
-                (i.name || "")
-                .toLowerCase()
-                .includes(accSearch)
+            (i.name || "")
+            .toLowerCase()
+            .includes(accSearch)
 
-                ||
+            ||
 
-                (i.itemCode || "")
-                .toLowerCase()
-                .includes(accSearch)
-            );
-        });
+            (i.itemCode || "")
+            .toLowerCase()
+            .includes(accSearch)
+
+        );
 
         if (currentAccType !== 'ทั้งหมด') {
 
@@ -294,6 +270,7 @@
 
         document.getElementById('accessories-list').innerHTML =
             filteredAcc.map(i => `
+
                 <details class="group bg-white/95 rounded-[1.5rem] overflow-hidden border border-emerald-900/10 shadow-lg animate-in">
 
                     <summary class="p-5 flex items-center justify-between cursor-pointer list-none">
@@ -315,6 +292,7 @@
                                 <p class="text-[10px] font-bold text-emerald-600/50 uppercase italic leading-none mt-1">
                                     ${i.procedure || '-'}
                                 </p>
+
                             </div>
                         </div>
 
@@ -326,28 +304,76 @@
                                     Stock
                                 </p>
 
-                                <p class="text-lg font-black
-                                    ${i.qty > 5
-                                        ? 'text-emerald-600'
-                                        : 'text-rose-600'}">
-
+                                <p class="text-lg font-black ${i.qty > 5 ? 'text-emerald-600' : 'text-rose-600'}">
                                     ${i.qty || 0}
                                 </p>
+
                             </div>
 
                             <div class="text-slate-300 transition-transform group-open:rotate-180 text-xs">
                                 ▼
                             </div>
+
                         </div>
                     </summary>
 
+                    <div class="px-5 pb-6 animate-in border-t border-slate-50 bg-slate-50/50">
+
+                        <div class="flex flex-col md:flex-row gap-6 mt-4">
+
+                            <div class="w-full md:w-56 h-56 rounded-3xl bg-white border border-slate-200 flex items-center justify-center p-4 shadow-sm">
+
+                                <img src="${i.imageURL || 'https://via.placeholder.com/100?text=📦'}"
+                                     class="max-w-full max-h-full object-contain">
+
+                            </div>
+
+                            <div class="flex-grow space-y-4">
+
+                                <div>
+                                    <p class="text-[9px] font-bold text-slate-400 uppercase italic tracking-widest leading-none mb-1">
+                                        Product Code
+                                    </p>
+
+                                    <p class="text-sm font-black text-slate-800 uppercase leading-none">
+                                        ${i.itemCode || '-'}
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <p class="text-[9px] font-bold text-slate-400 uppercase italic tracking-widest leading-none mb-1">
+                                        Specifications / Size
+                                    </p>
+
+                                    <p class="text-sm font-bold text-slate-600 leading-none">
+                                        ${i.specs || '-'}
+                                    </p>
+                                </div>
+
+                                <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 shadow-inner">
+
+                                    <p class="text-[9px] font-bold text-emerald-500 uppercase italic mb-1 tracking-widest">
+                                        Indication (ข้อบ่งใช้):
+                                    </p>
+
+                                    <p class="text-sm font-bold text-slate-700 leading-relaxed">
+                                        ${i.indication || '-'}
+                                    </p>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
                 </details>
+
             `).join('');
     }
 
     function renderAccFilters() {
 
-        const container = document.getElementById('acc-filter');
+        const container =
+            document.getElementById('acc-filter');
 
         const types = [
             'ทั้งหมด',
@@ -358,22 +384,24 @@
             )
         ];
 
-        container.innerHTML = types.map(t => `
+        container.innerHTML =
+            types.map(t => `
 
-            <button
-                onclick="filterAccType('${t}', this)"
-                class="acc-tab whitespace-nowrap
-                ${t === currentAccType
-                    ? 'bg-emerald-400 text-[#0b3d33]'
-                    : 'bg-[#144d44] text-emerald-200'}">
+                <button
+                    onclick="filterAccType('${t}', this)"
+                    class="acc-tab whitespace-nowrap
+                    ${t === currentAccType
+                        ? 'bg-emerald-400 text-[#0b3d33]'
+                        : 'bg-[#144d44] text-emerald-200'}">
 
-                ${t}
-            </button>
+                    ${t}
 
-        `).join('');
+                </button>
+
+            `).join('');
     }
 
-    function filterAccType(type) {
+    function filterAccType(type, btn) {
 
         currentAccType = type;
 
@@ -392,7 +420,9 @@
 
             btn.className =
                 t === f
+
                 ? "flex-shrink-0 px-6 py-2.5 rounded-xl bg-slate-800 text-white font-bold text-xs uppercase shadow-md"
+
                 : "flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-slate-500 font-bold text-xs border border-slate-200 uppercase shadow-sm";
         });
 
