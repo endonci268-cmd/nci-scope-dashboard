@@ -1,439 +1,211 @@
-<script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbxL8VnqCWO-3YuNsMrz5pJ012rLTKTD1gQA2zu8pgENMDQ34YHI8Diyh9NAoVEjskM/exec";
-    const WASH_LOG_API = "https://script.google.com/macros/s/AKfycbwUY36cqp5ns2dM5LgT0_MqmwH8k5riXXLDEb3JWo7kzfu81rumQ1opt5URik1H2fCC/exec";
-    const ACCESSORIES_API = "https://script.google.com/macros/s/AKfycbz4NQzTP25uJWuiIfdewY3gzLLYyGD0KIgfIQIgVMTe3xGQqkCiq4cRl7Z2fCUPf-tF/exec";
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NCI SCOPE TAGLINE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Kanit', sans-serif; background-color: #f4f7fa; }
+        .card-main { background: white; border-radius: 2.5rem; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid white; }
+        .usage-box { background: #f0f7ff; border-radius: 1.5rem; padding: 1.25rem; border: 1px solid #e1efff; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .animate-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .sticky-header { position: sticky; top: 0; z-index: 100; background: rgba(244, 247, 250, 0.95); backdrop-filter: blur(10px); }
+        .acc-tab { transition: all 0.2s; border-radius: 99px; font-size: 11px; font-weight: 600; padding: 6px 16px; border: 1px solid rgba(255,255,255,0.2); }
+        details summary::-webkit-details-marker { display: none; }
+    </style>
+</head>
+<body class="p-3 sm:p-6 md:p-8">
 
-    let allScopes = [],
-        washLogs = [],
-        accData = [],
-        currentFilter = 'all',
-        currentAccType = 'ทั้งหมด';
+    <div class="max-w-4xl mx-auto">
+        <div class="mb-6 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
+            <div>
+                <h1 class="text-2xl md:text-4xl font-black text-blue-900 uppercase italic leading-none">NCI SCOPE TAGLINE</h1>
+                <p class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tight italic leading-none">ศูนย์ส่องกล้องระบบทางเดินอาหาร สถาบันมะเร็งแห่งชาติ</p>
+            </div>
+            <div id="ready-percent-label" class="bg-blue-600 text-white px-8 py-2 rounded-full font-black text-lg shadow-lg">พร้อมใช้ 0%</div>
+        </div>
 
-    async function init() {
-        try {
+        <div class="sticky-header py-2 mb-8 space-y-3">
+            <input type="text" id="search-input" placeholder="ค้นหา S/N หรือ รหัสกล้อง..." class="w-full p-4 rounded-2xl border-none shadow-lg outline-none font-bold text-slate-700">
+            <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                <button onclick="setFilter('all')" id="btn-all" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-slate-800 text-white font-bold text-xs uppercase shadow-md tracking-widest italic">ทั้งหมด (<span id="c-all">0</span>)</button>
+                <button onclick="setFilter('ready')" id="btn-ready" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-slate-500 font-bold text-xs border border-slate-200 uppercase shadow-sm tracking-widest italic">พร้อมใช้ (<span id="c-ready">0</span>)</button>
+                <button onclick="setFilter('repair')" id="btn-repair" class="flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-rose-500 font-bold text-xs border border-slate-200 uppercase shadow-sm tracking-widest italic">ส่งซ่อม (<span id="c-repair">0</span>)</button>
+            </div>
+        </div>
 
-            const [sRes, wRes, aRes] = await Promise.all([
-                fetch(API_URL).then(r => r.json()),
-                fetch(WASH_LOG_API).then(r => r.json()),
-                fetch(ACCESSORIES_API).then(r => r.json())
-            ]);
+        <div id="scope-list" class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12"></div>
 
-            allScopes = sRes.scopes || sRes || [];
+        <div class="card-main p-6 md:p-8 animate-in mb-12 border border-blue-100 bg-blue-50/20">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black italic shadow-md uppercase text-[10px]">WASH</div>
+                    <h2 class="text-xl font-black text-slate-800 uppercase italic">Wash Summary List</h2>
+                </div>
+                <div class="text-[10px] font-bold text-slate-400 bg-white px-4 py-1 rounded-full border border-slate-100 uppercase italic">History Log</div>
+            </div>
+            <div class="overflow-x-auto no-scrollbar max-h-[500px] overflow-y-auto">
+                <table class="w-full text-left">
+                    <thead class="sticky top-0 bg-white shadow-sm z-10">
+                        <tr class="text-[10px] text-slate-300 font-black uppercase italic">
+                            <th class="pb-4 pr-4">วันที่/เวลา</th>
+                            <th class="pb-4 pr-4">รหัสกล้อง</th>
+                            <th class="pb-4">Serial Number</th>
+                        </tr>
+                    </thead>
+                    <tbody id="daily-summary-body"></tbody>
+                </table>
+            </div>
+        </div>
 
-            // ✅ รองรับทั้ง array และ recentWashes
-            washLogs = Array.isArray(wRes)
-                ? wRes
-                : (wRes.recentWashes || []);
+        <div class="bg-[#0b3d33] text-white p-6 md:p-10 rounded-[2.5rem] shadow-xl mb-20 animate-in">
+            <div class="mb-6">
+                <h2 class="text-2xl font-black italic text-emerald-400 uppercase leading-none">Accessories Catalog</h2>
+                <p class="text-emerald-200/50 text-[10px] font-bold uppercase tracking-widest mt-1 italic leading-none">Inventory Management</p>
+            </div>
+            <div class="relative mb-6">
+                <input type="text" id="acc-search" oninput="updateUI()" placeholder="ค้นหาชื่ออุปกรณ์ หรือรหัสสินค้า..." class="w-full bg-[#144d44] border border-emerald-800/50 rounded-2xl p-4 pl-12 text-sm text-emerald-100 placeholder-emerald-800 outline-none focus:ring-2 focus:ring-emerald-500 font-bold">
+                <div class="absolute left-4 top-4">🔍</div>
+            </div>
+            <div id="acc-filter" class="flex gap-2 overflow-x-auto no-scrollbar mb-8 pb-1"></div>
+            <div id="accessories-list" class="space-y-3"></div>
+        </div>
+    </div>
 
-            accData = aRes || [];
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbxL8VnqCWO-3YuNsMrz5pJ012rLTKTD1gQA2zu8pgENMDQ34YHI8Diyh9NAoVEjskM/exec";
+        const WASH_LOG_API = "https://script.google.com/macros/s/AKfycbwUY36cqp5ns2dM5LgT0_MqmwH8k5riXXLDEb3JWo7kzfu81rumQ1opt5URik1H2fCC/exec";
+        const ACCESSORIES_API = "https://script.google.com/macros/s/AKfycbz4NQzTP25uJWuiIfdewY3gzLLYyGD0KIgfIQIgVMTe3xGQqkCiq4cRl7Z2fCUPf-tF/exec";
 
-            console.log("Wash Logs:", washLogs);
+        let allScopes = [], washLogs = [], accData = [], currentFilter = 'all', currentAccType = 'ทั้งหมด';
 
-            updateUI();
-            renderAccFilters();
-
-        } catch (e) {
-            console.error("Init Error:", e);
-        }
-    }
-
-    function updateUI() {
-
-        const search = document.getElementById('search-input')
-            .value
-            .toLowerCase()
-            .trim();
-
-        const accSearch = document.getElementById('acc-search')
-            .value
-            .toLowerCase()
-            .trim();
-
-        // =========================
-        // นับจำนวนการใช้งานตาม Serial Number
-        // =========================
-
-        const usageBySN = {};
-
-        washLogs.forEach(w => {
-
-            // ✅ รองรับชื่อ field จริงจาก Google Sheet
-            const sn = (
-                w["Serial Number"] ||
-                w.sn ||
-                w.serial ||
-                ""
-            )
-            .toString()
-            .trim()
-            .toUpperCase();
-
-            if (sn) {
-                usageBySN[sn] = (usageBySN[sn] || 0) + 1;
-            }
-        });
-
-        console.log("Usage By SN:", usageBySN);
-
-        // =========================
-        // Summary Count
-        // =========================
-
-        const total = allScopes.length;
-
-        const readyCount = allScopes.filter(s =>
-            (s.status || "").includes("พร้อม")
-        ).length;
-
-        document.getElementById('ready-percent-label').innerText =
-            `พร้อมใช้ ${total > 0 ? Math.round((readyCount / total) * 100) : 0}%`;
-
-        document.getElementById('c-all').innerText = total;
-        document.getElementById('c-ready').innerText = readyCount;
-        document.getElementById('c-repair').innerText = total - readyCount;
-
-        // =========================
-        // Filter Scope
-        // =========================
-
-        let filteredScopes = allScopes.filter(s =>
-
-            (s.code || "")
-            .toLowerCase()
-            .includes(search)
-
-            ||
-
-            (s.serial || "")
-            .toLowerCase()
-            .includes(search)
-
-        );
-
-        if (currentFilter === 'ready') {
-
-            filteredScopes = filteredScopes.filter(s =>
-                (s.status || "").includes("พร้อม")
-            );
+        async function init() {
+            try {
+                const [sRes, wRes, aRes] = await Promise.all([
+                    fetch(API_URL).then(r => r.json()),
+                    fetch(WASH_LOG_API).then(r => r.json()),
+                    fetch(ACCESSORIES_API).then(r => r.json())
+                ]);
+                allScopes = sRes.scopes || sRes || [];
+                washLogs = wRes.recentWashes || [];
+                accData = aRes || [];
+                updateUI();
+                renderAccFilters();
+            } catch (e) { console.error("Init Error:", e); }
         }
 
-        if (currentFilter === 'repair') {
+        function updateUI() {
+            const search = document.getElementById('search-input').value.toLowerCase().trim();
+            const accSearch = document.getElementById('acc-search').value.toLowerCase().trim();
+            
+            // Logic: นับจำนวนครั้งสะสมตาม Serial Number (บังคับ Trim และ Uppercase ทุกบรรทัด)
+            const usageBySN = {};
+            washLogs.forEach(w => {
+                const sn = (w.sn || "").toString().trim().toUpperCase();
+                if (sn) {
+                    usageBySN[sn] = (usageBySN[sn] || 0) + 1;
+                }
+            });
 
-            filteredScopes = filteredScopes.filter(s =>
-                !(s.status || "").includes("พร้อม")
-            );
-        }
+            const total = allScopes.length;
+            const readyCount = allScopes.filter(s => (s.status||"").includes("พร้อม")).length;
+            document.getElementById('ready-percent-label').innerText = `พร้อมใช้ ${total > 0 ? Math.round((readyCount/total)*100) : 0}%`;
+            document.getElementById('c-all').innerText = total;
+            document.getElementById('c-ready').innerText = readyCount;
+            document.getElementById('c-repair').innerText = total - readyCount;
 
-        // =========================
-        // Render Scope Cards
-        // =========================
+            // 1. วาดรายการกล้อง
+            let filteredScopes = allScopes.filter(s => (s.code||"").toLowerCase().includes(search) || (s.serial||"").toLowerCase().includes(search));
+            if (currentFilter === 'ready') filteredScopes = filteredScopes.filter(s => (s.status||"").includes("พร้อม"));
+            if (currentFilter === 'repair') filteredScopes = filteredScopes.filter(s => !(s.status||"").includes("พร้อม"));
 
-        document.getElementById('scope-list').innerHTML =
-            filteredScopes.map(s => {
-
-                const isReady =
-                    (s.status || "").includes("พร้อม");
-
-                const snKey = (
-                    s.serial ||
-                    s["Serial Number"] ||
-                    ""
-                )
-                .toString()
-                .trim()
-                .toUpperCase();
-
-                const usageCount =
-                    usageBySN[snKey] || 0;
-
+            document.getElementById('scope-list').innerHTML = filteredScopes.map(s => {
+                const isReady = (s.status||"").includes("พร้อม");
+                const snKey = (s.serial || "").toString().trim().toUpperCase();
                 return `
                 <div class="card-main p-6 md:p-8 animate-in flex flex-col h-full border border-slate-50">
-
                     <div class="flex justify-between items-start mb-4">
-
-                        <div>
-                            <h3 class="text-3xl font-black text-slate-800 tracking-tighter leading-none mb-1 uppercase italic">
-                                ${s.code || '-'}
-                            </h3>
-
-                            <span class="px-2 py-0.5 bg-slate-100 text-slate-400 rounded text-[9px] font-black uppercase italic">
-                                ${s.brand || 'FUJINON'}
-                            </span>
-                        </div>
-
-                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase
-                            ${isReady
-                                ? 'bg-emerald-50 text-emerald-600'
-                                : 'bg-rose-50 text-rose-600'}">
-
-                            ● ${isReady ? 'พร้อมใช้' : 'ส่งซ่อม'}
-                        </span>
+                        <div><h3 class="text-3xl font-black text-slate-800 tracking-tighter leading-none mb-1 uppercase italic">${s.code}</h3><span class="px-2 py-0.5 bg-slate-100 text-slate-400 rounded text-[9px] font-black uppercase italic">${s.brand || 'FUJINON'}</span></div>
+                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${isReady ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">● ${isReady ? 'พร้อมใช้' : 'ส่งซ่อม'}</span>
                     </div>
-
                     <div class="usage-box flex justify-between items-center mb-6 shadow-sm border-blue-50">
-
-                        <span class="text-[10px] font-black text-blue-400 uppercase italic leading-none tracking-widest">
-                            Usage History
-                        </span>
-
-                        <div class="flex items-baseline gap-1">
-
-                            <span class="text-4xl font-black text-blue-700 leading-none">
-                                ${usageCount}
-                            </span>
-
-                            <span class="text-[10px] font-bold text-blue-300">
-                                ครั้ง
-                            </span>
-                        </div>
+                        <span class="text-[10px] font-black text-blue-400 uppercase italic leading-none tracking-widest">Usage History</span>
+                        <div class="flex items-baseline gap-1"><span class="text-4xl font-black text-blue-700 leading-none">${usageBySN[snKey] || 0}</span><span class="text-[10px] font-bold text-blue-300">ครั้ง</span></div>
                     </div>
-
                     <div class="mt-auto pt-6 border-t border-slate-50 flex justify-between items-center">
-
-                        <div>
-                            <p class="text-[8px] font-black text-slate-300 uppercase italic leading-none mb-1">
-                                Serial Number
-                            </p>
-
-                            <p class="text-xl font-black text-slate-800 tracking-tight leading-none">
-                                ${s.serial || '-'}
-                            </p>
-                        </div>
-
-                        <div class="w-3 h-3
-                            ${isReady
-                                ? 'bg-emerald-400 shadow-[0_0_10px_#4ade80]'
-                                : 'bg-rose-400'}
-                            rounded-full">
-                        </div>
+                        <div><p class="text-[8px] font-black text-slate-300 uppercase italic leading-none mb-1">Serial Number</p>
+                        <p class="text-xl font-black text-slate-800 tracking-tight leading-none">${s.serial || '-'}</p></div>
+                        <div class="w-3 h-3 ${isReady ? 'bg-emerald-400 shadow-[0_0_10px_#4ade80]' : 'bg-rose-400'} rounded-full"></div>
                     </div>
-
-                </div>
-                `;
+                </div>`;
             }).join('');
 
-        // =========================
-        // Render Wash Summary
-        // =========================
-
-        const summaryTableBody =
-            document.getElementById('daily-summary-body');
-
-        summaryTableBody.innerHTML =
-            washLogs.map(w => `
-
+            // 2. วาดตาราง Wash Summary (แสดงประวัติทั้งหมดที่ดึงมาได้ เรียงจากใหม่ไปเก่า)
+            const summaryTableBody = document.getElementById('daily-summary-body');
+            summaryTableBody.innerHTML = washLogs.map(w => `
                 <tr class="text-[11px] font-bold text-slate-600 border-b border-slate-50">
-
-                    <td class="py-4 text-slate-400 italic">
-                        ${w.date || w["วันที่ล้าง"] || '-'}
-                    </td>
-
-                    <td class="py-4">
-
-                        <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg uppercase italic font-black text-[10px]">
-                            ${w.code || w["รหัสกล้อง"] || '-'}
-                        </span>
-                    </td>
-
-                    <td class="py-4 text-slate-800 font-black">
-                        ${w["Serial Number"] || w.sn || '-'}
-                    </td>
-
+                    <td class="py-4 text-slate-400 italic">${w.date}</td>
+                    <td class="py-4"><span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg uppercase italic font-black text-[10px]">${w.code}</span></td>
+                    <td class="py-4 text-slate-800 font-black">${w.sn}</td>
                 </tr>
-
             `).join('');
 
-        // =========================
-        // Accessories
-        // =========================
-
-        let filteredAcc = accData.filter(i =>
-
-            (i.name || "")
-            .toLowerCase()
-            .includes(accSearch)
-
-            ||
-
-            (i.itemCode || "")
-            .toLowerCase()
-            .includes(accSearch)
-
-        );
-
-        if (currentAccType !== 'ทั้งหมด') {
-
-            filteredAcc = filteredAcc.filter(i =>
-                i.procedure === currentAccType
-            );
-        }
-
-        document.getElementById('accessories-list').innerHTML =
-            filteredAcc.map(i => `
-
+            // 3. วาด Accessories
+            let filteredAcc = accData.filter(i => (i.name||"").toLowerCase().includes(accSearch) || (i.itemCode||"").toLowerCase().includes(accSearch));
+            if (currentAccType !== 'ทั้งหมด') filteredAcc = filteredAcc.filter(i => i.procedure === currentAccType);
+            document.getElementById('accessories-list').innerHTML = filteredAcc.map(i => `
                 <details class="group bg-white/95 rounded-[1.5rem] overflow-hidden border border-emerald-900/10 shadow-lg animate-in">
-
                     <summary class="p-5 flex items-center justify-between cursor-pointer list-none">
-
                         <div class="flex items-center gap-4">
-
-                            <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center p-1 border border-slate-100 shadow-inner overflow-hidden">
-
-                                <img src="${i.imageURL || 'https://via.placeholder.com/100?text=📦'}"
-                                     class="w-full h-full object-contain">
-                            </div>
-
-                            <div>
-
-                                <h4 class="text-sm font-bold text-slate-800 leading-tight">
-                                    ${i.name || 'N/A'}
-                                </h4>
-
-                                <p class="text-[10px] font-bold text-emerald-600/50 uppercase italic leading-none mt-1">
-                                    ${i.procedure || '-'}
-                                </p>
-
-                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center p-1 border border-slate-100 shadow-inner overflow-hidden"><img src="${i.imageURL || 'https://via.placeholder.com/100?text=📦'}" class="w-full h-full object-contain"></div>
+                            <div><h4 class="text-sm font-bold text-slate-800 leading-tight">${i.name || 'N/A'}</h4><p class="text-[10px] font-bold text-emerald-600/50 uppercase italic leading-none mt-1">${i.procedure || '-'}</p></div>
                         </div>
-
                         <div class="flex items-center gap-4">
-
-                            <div class="text-right">
-
-                                <p class="text-[9px] font-bold text-slate-400 uppercase italic leading-none">
-                                    Stock
-                                </p>
-
-                                <p class="text-lg font-black ${i.qty > 5 ? 'text-emerald-600' : 'text-rose-600'}">
-                                    ${i.qty || 0}
-                                </p>
-
-                            </div>
-
-                            <div class="text-slate-300 transition-transform group-open:rotate-180 text-xs">
-                                ▼
-                            </div>
-
+                            <div class="text-right"><p class="text-[9px] font-bold text-slate-400 uppercase italic leading-none">Stock</p><p class="text-lg font-black ${i.qty > 5 ? 'text-emerald-600' : 'text-rose-600'}">${i.qty || 0}</p></div>
+                            <div class="text-slate-300 transition-transform group-open:rotate-180 text-xs">▼</div>
                         </div>
                     </summary>
-
                     <div class="px-5 pb-6 animate-in border-t border-slate-50 bg-slate-50/50">
-
                         <div class="flex flex-col md:flex-row gap-6 mt-4">
-
-                            <div class="w-full md:w-56 h-56 rounded-3xl bg-white border border-slate-200 flex items-center justify-center p-4 shadow-sm">
-
-                                <img src="${i.imageURL || 'https://via.placeholder.com/100?text=📦'}"
-                                     class="max-w-full max-h-full object-contain">
-
-                            </div>
-
+                            <div class="w-full md:w-56 h-56 rounded-3xl bg-white border border-slate-200 flex items-center justify-center p-4 shadow-sm"><img src="${i.imageURL || 'https://via.placeholder.com/100?text=📦'}" class="max-w-full max-h-full object-contain"></div>
                             <div class="flex-grow space-y-4">
-
-                                <div>
-                                    <p class="text-[9px] font-bold text-slate-400 uppercase italic tracking-widest leading-none mb-1">
-                                        Product Code
-                                    </p>
-
-                                    <p class="text-sm font-black text-slate-800 uppercase leading-none">
-                                        ${i.itemCode || '-'}
-                                    </p>
-                                </div>
-
-                                <div>
-                                    <p class="text-[9px] font-bold text-slate-400 uppercase italic tracking-widest leading-none mb-1">
-                                        Specifications / Size
-                                    </p>
-
-                                    <p class="text-sm font-bold text-slate-600 leading-none">
-                                        ${i.specs || '-'}
-                                    </p>
-                                </div>
-
+                                <div><p class="text-[9px] font-bold text-slate-400 uppercase italic tracking-widest leading-none mb-1">Product Code</p><p class="text-sm font-black text-slate-800 uppercase leading-none">${i.itemCode || '-'}</p></div>
+                                <div><p class="text-[9px] font-bold text-slate-400 uppercase italic tracking-widest leading-none mb-1">Specifications / Size</p><p class="text-sm font-bold text-slate-600 leading-none">${i.specs || '-'}</p></div>
                                 <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 shadow-inner">
-
-                                    <p class="text-[9px] font-bold text-emerald-500 uppercase italic mb-1 tracking-widest">
-                                        Indication (ข้อบ่งใช้):
-                                    </p>
-
-                                    <p class="text-sm font-bold text-slate-700 leading-relaxed">
-                                        ${i.indication || '-'}
-                                    </p>
-
+                                    <p class="text-[9px] font-bold text-emerald-500 uppercase italic mb-1 tracking-widest">Indication (ข้อบ่งใช้):</p>
+                                    <p class="text-sm font-bold text-slate-700 leading-relaxed">${i.indication || '-'}</p>
                                 </div>
-
                             </div>
                         </div>
                     </div>
-                </details>
+                </details>`).join('');
+        }
 
-            `).join('');
-    }
+        function renderAccFilters() {
+            const container = document.getElementById('acc-filter');
+            const types = ['ทั้งหมด', ...new Set(accData.map(i => i.procedure).filter(p => p))];
+            container.innerHTML = types.map(t => `<button onclick="filterAccType('${t}', this)" class="acc-tab whitespace-nowrap ${t === currentAccType ? 'bg-emerald-400 text-[#0b3d33]' : 'bg-[#144d44] text-emerald-200'}">${t}</button>`).join('');
+        }
 
-    function renderAccFilters() {
+        function filterAccType(type, btn) { currentAccType = type; renderAccFilters(); updateUI(); }
 
-        const container =
-            document.getElementById('acc-filter');
+        function setFilter(f) {
+            currentFilter = f;
+            ['all', 'ready', 'repair'].forEach(t => {
+                const btn = document.getElementById('btn-' + t);
+                btn.className = t === f ? "flex-shrink-0 px-6 py-2.5 rounded-xl bg-slate-800 text-white font-bold text-xs uppercase shadow-md" : "flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-slate-500 font-bold text-xs border border-slate-200 uppercase shadow-sm";
+            });
+            updateUI();
+        }
 
-        const types = [
-            'ทั้งหมด',
-            ...new Set(
-                accData
-                    .map(i => i.procedure)
-                    .filter(p => p)
-            )
-        ];
+        document.getElementById('search-input').addEventListener('input', updateUI);
+        init(); setInterval(init, 30000);
+    </script>
+</body>
+</html>
 
-        container.innerHTML =
-            types.map(t => `
-
-                <button
-                    onclick="filterAccType('${t}', this)"
-                    class="acc-tab whitespace-nowrap
-                    ${t === currentAccType
-                        ? 'bg-emerald-400 text-[#0b3d33]'
-                        : 'bg-[#144d44] text-emerald-200'}">
-
-                    ${t}
-
-                </button>
-
-            `).join('');
-    }
-
-    function filterAccType(type, btn) {
-
-        currentAccType = type;
-
-        renderAccFilters();
-        updateUI();
-    }
-
-    function setFilter(f) {
-
-        currentFilter = f;
-
-        ['all', 'ready', 'repair'].forEach(t => {
-
-            const btn =
-                document.getElementById('btn-' + t);
-
-            btn.className =
-                t === f
-
-                ? "flex-shrink-0 px-6 py-2.5 rounded-xl bg-slate-800 text-white font-bold text-xs uppercase shadow-md"
-
-                : "flex-shrink-0 px-6 py-2.5 rounded-xl bg-white text-slate-500 font-bold text-xs border border-slate-200 uppercase shadow-sm";
-        });
-
-        updateUI();
-    }
-
-    document
-        .getElementById('search-input')
-        .addEventListener('input', updateUI);
-
-    init();
-
-    setInterval(init, 30000);
-</script>
