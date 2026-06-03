@@ -19,6 +19,10 @@
         details summary::-webkit-details-marker { display: none; }
         .status-ready { background: #ecfdf5; color: #059669; }
         .status-repair { background: #fff1f2; color: #e11d48; }
+        
+        /* สไตล์เพิ่มเติมสำหรับ Lightbox */
+        .lightbox-overlay { display: none; position: fixed; top: 0; left: 0; w-width: 100vw; w-height: 100vh; z-index: 1000; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); justify-content: center; items-center: center; opacity: 0; transition: opacity 0.3s ease; }
+        .lightbox-overlay.active { display: flex; opacity: 1; }
     </style>
 </head>
 <body class="p-4 sm:p-6 md:p-8">
@@ -71,6 +75,17 @@
             </div>
             <div id="acc-filter" class="flex gap-2 overflow-x-auto no-scrollbar mb-10 pb-2"></div>
             <div id="accessories-list" class="space-y-6"></div>
+        </div>
+    </div>
+
+    <!-- โครงสร้างของ Lightbox บล็อกแสดงรูปภาพขนาดใหญ่ -->
+    <div id="lightbox" class="lightbox-overlay" onclick="closeLightbox()">
+        <div class="relative max-w-3xl max-h-[85vh] p-2 bg-white rounded-3xl shadow-2xl m-4 animate-in" onclick="event.stopPropagation()">
+            <button onclick="closeLightbox()" class="absolute -top-3 -right-3 w-10 h-10 bg-rose-500 hover:bg-rose-600 text-white rounded-full font-black text-lg flex items-center justify-center shadow-lg transition-colors z-50">✕</button>
+            <div class="overflow-hidden rounded-2xl bg-slate-50 flex items-center justify-center max-h-[75vh]">
+                <img id="lightbox-img" src="" class="w-full h-full object-contain">
+            </div>
+            <p id="lightbox-caption" class="text-center text-slate-800 font-bold mt-3 px-4 text-sm truncate"></p>
         </div>
     </div>
 
@@ -160,19 +175,27 @@
                 </tr>
             `).join('');
 
-            // 3. จัดการข้อมูล Accessories (แก้ Drop-down ให้มีข้อมูล)
+            // 3. จัดการข้อมูล Accessories (ขยายขนาดรูปและเพิ่มฟังก์ชันคลิกส่องรูปใหญ่)
             let filteredAcc = accData.filter(i => 
                 (String(i.name)||"").toLowerCase().includes(search) || 
                 (String(i.itemCode)||"").toLowerCase().includes(search)
             );
             if (currentAccType !== 'ทั้งหมด') filteredAcc = filteredAcc.filter(i => i.procedure === currentAccType);
             
-            document.getElementById('accessories-list').innerHTML = filteredAcc.map(i => `
+            document.getElementById('accessories-list').innerHTML = filteredAcc.map(i => {
+                const imgSource = i.imageURL || '📦';
+                const itemName = (i.name || 'N/A').replace(/"/g, '&quot;'); // กัน Error สตริงหลุด
+                return `
                 <details class="group bg-white/95 rounded-[2.5rem] overflow-hidden border border-emerald-900/10 shadow-xl animate-in transition-all">
                     <summary class="p-6 flex items-center justify-between cursor-pointer list-none">
                         <div class="flex items-center gap-6">
-                            <div class="w-16 h-16 rounded-2xl bg-white flex items-center justify-center p-1 border border-slate-100 shadow-md overflow-hidden">
-                                <img src="${i.imageURL || '📦'}" class="w-full h-full object-contain" onerror="this.src='https://via.placeholder.com/100?text=📦'">
+                            <!-- ขยายกรอบรูปภาพเป็น w-20 h-20 บนมือถือ และ w-28 h-28 บนจอใหญ่ พร้อมใส่เอฟเฟกต์แว่นขยาย -->
+                            <div class="relative w-20 h-20 sm:w-28 sm:h-28 rounded-2xl bg-white flex items-center justify-center p-1 border border-slate-100 shadow-md overflow-hidden group/img flex-shrink-0" 
+                                 onclick="openLightbox('${imgSource}', '${itemName}'); event.stopPropagation();">
+                                <img src="${imgSource}" class="w-full h-full object-contain transition-transform duration-200 group-hover/img:scale-110" onerror="this.src='https://via.placeholder.com/200?text=📦'">
+                                <div class="absolute inset-0 bg-black/10 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-opacity">
+                                    <span class="text-white bg-slate-900/60 rounded-full p-1.5 text-xs">🔍</span>
+                                </div>
                             </div>
                             <div>
                                 <h4 class="text-base font-black text-slate-800 leading-tight">${i.name || 'N/A'}</h4>
@@ -208,7 +231,8 @@
                             </span>
                         </div>
                     </div>
-                </details>`).join('');
+                </details>`;
+            }).join('');
         }
 
         function renderAccFilters() {
@@ -218,6 +242,7 @@
         }
 
         function filterAccType(type, btn) { currentAccType = type; renderAccFilters(); updateUI(); }
+        
         function setFilter(f) {
             currentFilter = f;
             ['all', 'ready', 'repair'].forEach(t => {
@@ -225,6 +250,24 @@
                 btn.className = t === f ? "flex-shrink-0 acc-tab bg-slate-800 text-white shadow-lg" : "flex-shrink-0 acc-tab bg-white text-slate-600";
             });
             updateUI();
+        }
+
+        // ฟังก์ชันระบบเจาะจงดูรูปภาพใหญ่ (Lightbox Control)
+        function openLightbox(src, name) {
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            const lightboxCaption = document.getElementById('lightbox-caption');
+            
+            lightboxImg.src = src;
+            lightboxCaption.innerText = name;
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden'; // ล็อกการสกรอลล์ของหน้าเว็บหลักเบื้องหลัง
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.remove('active');
+            document.body.style.overflow = ''; // คืนค่าการสกรอลล์
         }
 
         document.getElementById('search-input').addEventListener('input', updateUI);
