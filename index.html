@@ -19,10 +19,18 @@
         details summary::-webkit-details-marker { display: none; }
         .status-ready { background: #ecfdf5; color: #059669; }
         .status-repair { background: #fff1f2; color: #e11d48; }
-        
-        /* สไตล์เพิ่มเติมสำหรับ Lightbox */
-        .lightbox-overlay { display: none; position: fixed; top: 0; left: 0; w-width: 100vw; w-height: 100vh; z-index: 1000; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); justify-content: center; items-center: center; opacity: 0; transition: opacity 0.3s ease; }
+        .lightbox-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1000; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
         .lightbox-overlay.active { display: flex; opacity: 1; }
+
+        /* === Stock status badges === */
+        .stock-ok    { display:inline-flex;align-items:center;gap:4px;margin-top:6px;padding:3px 10px;background:#ecfdf5;color:#065f46;font-size:10px;font-weight:700;border-radius:99px;border:1px solid #a7f3d0;font-style:italic; }
+        .stock-low   { display:inline-flex;align-items:center;gap:4px;margin-top:6px;padding:3px 10px;background:#fffbeb;color:#92400e;font-size:10px;font-weight:700;border-radius:99px;border:1px solid #fcd34d;font-style:italic; }
+        .stock-crit  { display:inline-flex;align-items:center;gap:4px;margin-top:6px;padding:3px 10px;background:#fff1f2;color:#9f1239;font-size:10px;font-weight:700;border-radius:99px;border:1px solid #fda4af;font-style:italic;animation:pulse-red 1.5s ease infinite; }
+        @keyframes pulse-red { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+        /* acc-item border highlight เมื่อ low/critical */
+        .acc-border-low  { border-color: rgba(251,191,36,0.5) !important; }
+        .acc-border-crit { border-color: rgba(225,29,72,0.4) !important; }
     </style>
 </head>
 <body class="p-4 sm:p-6 md:p-8">
@@ -72,13 +80,18 @@
             <div class="mb-10 text-center md:text-left">
                 <h2 class="text-3xl font-black italic text-emerald-400 uppercase leading-none tracking-tight">Accessories Catalog</h2>
                 <p class="text-emerald-200/40 text-xs font-bold uppercase tracking-[0.3em] mt-2 italic">Medical Inventory</p>
+                <!-- สรุป low stock -->
+                <div id="low-stock-summary" class="mt-4 hidden">
+                    <span id="low-stock-count" class="inline-flex items-center gap-2 bg-rose-500/20 text-rose-200 px-4 py-2 rounded-2xl text-xs font-black italic border border-rose-400/30">
+                        ⚠️ มีรายการใกล้หมด/หมดแล้ว: <span id="low-count-num">0</span> รายการ
+                    </span>
+                </div>
             </div>
             <div id="acc-filter" class="flex gap-2 overflow-x-auto no-scrollbar mb-10 pb-2"></div>
             <div id="accessories-list" class="space-y-6"></div>
         </div>
     </div>
 
-    <!-- โครงสร้างของ Lightbox บล็อกแสดงรูปภาพขนาดใหญ่ -->
     <div id="lightbox" class="lightbox-overlay" onclick="closeLightbox()">
         <div class="relative max-w-3xl max-h-[85vh] p-2 bg-white rounded-3xl shadow-2xl m-4 animate-in" onclick="event.stopPropagation()">
             <button onclick="closeLightbox()" class="absolute -top-3 -right-3 w-10 h-10 bg-rose-500 hover:bg-rose-600 text-white rounded-full font-black text-lg flex items-center justify-center shadow-lg transition-colors z-50">✕</button>
@@ -90,9 +103,9 @@
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxGUOFckc_u-oQqSJZaKLq2zWSn6Ep5jqCx7Q-X-5BeRLGjjo8OTn7KzxkzJwEsr6uI/exec";
-        const WASH_LOG_API = "https://script.google.com/macros/s/AKfycbwUY36cqp5ns2dM5LgT0_MqmwH8k5riXXLDEb3JWo7kzfu81rumQ1opt5URik1H2fCC/exec";
-        const ACCESSORIES_API = "https://script.google.com/macros/s/AKfycbz4NQzTP25uJWuiIfdewY3gzLLYyGD0KIgfIQIgVMTe3xGQqkCiq4cRl7Z2fCUPf-tF/exec";
+        const API_URL          = "https://script.google.com/macros/s/AKfycbxGUOFckc_u-oQqSJZaKLq2zWSn6Ep5jqCx7Q-X-5BeRLGjjo8OTn7KzxkzJwEsr6uI/exec";
+        const WASH_LOG_API     = "https://script.google.com/macros/s/AKfycbwUY36cqp5ns2dM5LgT0_MqmwH8k5riXXLDEb3JWo7kzfu81rumQ1opt5URik1H2fCC/exec";
+        const ACCESSORIES_API  = "https://script.google.com/macros/s/AKfycbz4NQzTP25uJWuiIfdewY3gzLLYyGD0KIgfIQIgVMTe3xGQqkCiq4cRl7Z2fCUPf-tF/exec";
 
         let allScopes = [], washLogs = [], accData = [], currentFilter = 'all', currentAccType = 'ทั้งหมด';
 
@@ -104,8 +117,8 @@
                     fetch(ACCESSORIES_API).then(r => r.json())
                 ]);
                 allScopes = sRes.scopes || sRes || [];
-                washLogs = wRes.recentWashes || [];
-                accData = aRes || [];
+                washLogs  = wRes.recentWashes || [];
+                accData   = aRes || [];
                 updateUI();
                 renderAccFilters();
             } catch (e) { console.error("Data Fetch Error:", e); }
@@ -113,22 +126,20 @@
 
         function updateUI() {
             const search = document.getElementById('search-input').value.toLowerCase().trim();
-            
-            // 1. จัดการข้อมูลกล้อง
+
+            // --- Scope cards ---
             const readyCount = allScopes.filter(s => (String(s.status)||"").includes("พร้อม")).length;
             const total = allScopes.length;
-            
             document.getElementById('ready-percent-label').innerText = `พร้อมใช้ ${total > 0 ? Math.round((readyCount/total)*100) : 0}%`;
-            document.getElementById('c-all').innerText = total;
+            document.getElementById('c-all').innerText   = total;
             document.getElementById('c-ready').innerText = readyCount;
-            document.getElementById('c-repair').innerText = total - readyCount;
+            document.getElementById('c-repair').innerText= total - readyCount;
 
-            let filteredScopes = allScopes.filter(s => 
-                (String(s.code)||"").toLowerCase().includes(search) || 
+            let filteredScopes = allScopes.filter(s =>
+                (String(s.code)||"").toLowerCase().includes(search) ||
                 (String(s.serial)||"").toLowerCase().includes(search)
             );
-            
-            if (currentFilter === 'ready') filteredScopes = filteredScopes.filter(s => (String(s.status)||"").includes("พร้อม"));
+            if (currentFilter === 'ready')  filteredScopes = filteredScopes.filter(s =>  (String(s.status)||"").includes("พร้อม"));
             if (currentFilter === 'repair') filteredScopes = filteredScopes.filter(s => !(String(s.status)||"").includes("พร้อม"));
 
             document.getElementById('scope-list').innerHTML = filteredScopes.map(s => {
@@ -166,7 +177,7 @@
                 </div>`;
             }).join('');
 
-            // 2. จัดการข้อมูลประวัติการล้าง
+            // --- Wash log ---
             document.getElementById('wash-summary-body').innerHTML = washLogs.map(w => `
                 <tr class="text-[12px] font-bold text-slate-500 hover:bg-slate-50/50 transition-colors">
                     <td class="py-5 pr-4 italic">${w.date}</td>
@@ -175,22 +186,59 @@
                 </tr>
             `).join('');
 
-            // 3. จัดการข้อมูล Accessories (ขยายขนาดรูปและเพิ่มฟังก์ชันคลิกส่องรูปใหญ่)
-            let filteredAcc = accData.filter(i => 
-                (String(i.name)||"").toLowerCase().includes(search) || 
+            // --- Accessories (อัปเดต: ใช้ minQty จาก Sheet) ---
+            let filteredAcc = accData.filter(i =>
+                (String(i.name)||"").toLowerCase().includes(search) ||
                 (String(i.itemCode)||"").toLowerCase().includes(search)
             );
             if (currentAccType !== 'ทั้งหมด') filteredAcc = filteredAcc.filter(i => i.procedure === currentAccType);
-            
+
+            // นับรายการ low/critical เพื่อแสดง summary banner
+            const lowCount = filteredAcc.filter(i => {
+                const minQ = Number(i.minQty) || 0;
+                return minQ > 0 && Number(i.qty) <= minQ;
+            }).length;
+            const summaryEl = document.getElementById('low-stock-summary');
+            const countEl   = document.getElementById('low-count-num');
+            if (lowCount > 0) {
+                summaryEl.classList.remove('hidden');
+                countEl.innerText = lowCount;
+            } else {
+                summaryEl.classList.add('hidden');
+            }
+
             document.getElementById('accessories-list').innerHTML = filteredAcc.map(i => {
-                const imgSource = i.imageURL || '📦';
-                const itemName = (i.name || 'N/A').replace(/"/g, '&quot;'); // กัน Error สตริงหลุด
+                const imgSource = i.imageURL || '';
+                const itemName  = (i.name || 'N/A').replace(/"/g, '&quot;');
+                const qty       = Number(i.qty)    || 0;
+                const minQ      = Number(i.minQty) || 0;
+
+                // === สีของตัวเลข qty ===
+                const qtyColor = qty === 0
+                    ? 'text-rose-600'
+                    : (minQ > 0 && qty <= minQ)
+                        ? 'text-amber-400'
+                        : 'text-emerald-600';
+
+                // === badge แสดงสถานะสต๊อก ===
+                const stockBadge = qty === 0
+                    ? `<span class="stock-crit">⛔ หมดแล้ว — รีบสั่งซื้อ!</span>`
+                    : (minQ > 0 && qty <= minQ)
+                        ? `<span class="stock-low">⚠️ ใกล้หมด ${qty}/${minQ}</span>`
+                        : (minQ > 0)
+                            ? `<span class="stock-ok">✓ ปกติ ${qty}/${minQ}</span>`
+                            : '';
+
+                // === border highlight ===
+                const borderClass = qty === 0
+                    ? 'acc-border-crit'
+                    : (minQ > 0 && qty <= minQ) ? 'acc-border-low' : '';
+
                 return `
-                <details class="group bg-white/95 rounded-[2.5rem] overflow-hidden border border-emerald-900/10 shadow-xl animate-in transition-all">
+                <details class="group bg-white/95 rounded-[2.5rem] overflow-hidden border border-emerald-900/10 shadow-xl animate-in transition-all ${borderClass}">
                     <summary class="p-6 flex items-center justify-between cursor-pointer list-none">
                         <div class="flex items-center gap-6">
-                            <!-- ขยายกรอบรูปภาพเป็น w-20 h-20 บนมือถือ และ w-28 h-28 บนจอใหญ่ พร้อมใส่เอฟเฟกต์แว่นขยาย -->
-                            <div class="relative w-20 h-20 sm:w-28 sm:h-28 rounded-2xl bg-white flex items-center justify-center p-1 border border-slate-100 shadow-md overflow-hidden group/img flex-shrink-0" 
+                            <div class="relative w-20 h-20 sm:w-28 sm:h-28 rounded-2xl bg-white flex items-center justify-center p-1 border border-slate-100 shadow-md overflow-hidden group/img flex-shrink-0"
                                  onclick="openLightbox('${imgSource}', '${itemName}'); event.stopPropagation();">
                                 <img src="${imgSource}" class="w-full h-full object-contain transition-transform duration-200 group-hover/img:scale-110" onerror="this.src='https://via.placeholder.com/200?text=📦'">
                                 <div class="absolute inset-0 bg-black/10 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-opacity">
@@ -200,11 +248,12 @@
                             <div>
                                 <h4 class="text-base font-black text-slate-800 leading-tight">${i.name || 'N/A'}</h4>
                                 <p class="text-[10px] font-bold text-emerald-600 uppercase mt-1 tracking-[0.2em] italic">${i.itemCode || '-'}</p>
+                                ${stockBadge}
                             </div>
                         </div>
                         <div class="flex items-center gap-6">
                             <div class="text-right">
-                                <p class="text-3xl font-black ${i.qty > 5 ? 'text-emerald-600' : 'text-rose-600'} leading-none">${i.qty || 0}</p>
+                                <p class="text-3xl font-black ${qtyColor} leading-none">${qty}</p>
                                 <p class="text-[9px] font-bold text-slate-400 uppercase mt-1 italic">Stock</p>
                             </div>
                             <div class="text-emerald-200 transition-transform group-open:rotate-180 text-xs">▼</div>
@@ -225,10 +274,11 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="mt-8">
+                        <div class="mt-8 flex flex-wrap gap-3 items-center">
                             <span class="px-5 py-2 bg-slate-800 text-white rounded-full text-[10px] font-black uppercase italic tracking-[0.1em]">
                                 Procedure: ${i.procedure || '-'}
                             </span>
+                            ${minQ > 0 ? `<span class="px-5 py-2 bg-emerald-900/50 text-emerald-300 rounded-full text-[10px] font-black uppercase italic">Min Stock: ${minQ}</span>` : ''}
                         </div>
                     </div>
                 </details>`;
@@ -238,40 +288,39 @@
         function renderAccFilters() {
             const container = document.getElementById('acc-filter');
             const types = ['ทั้งหมด', ...new Set(accData.map(i => i.procedure).filter(p => p))];
-            container.innerHTML = types.map(t => `<button onclick="filterAccType('${t}', this)" class="acc-tab whitespace-nowrap ${t === currentAccType ? 'bg-emerald-400 text-[#0b3d33]' : 'bg-transparent text-emerald-100'}">${t}</button>`).join('');
+            container.innerHTML = types.map(t =>
+                `<button onclick="filterAccType('${t}', this)" class="acc-tab whitespace-nowrap ${t === currentAccType ? 'bg-emerald-400 text-[#0b3d33]' : 'bg-transparent text-emerald-100'}">${t}</button>`
+            ).join('');
         }
 
         function filterAccType(type, btn) { currentAccType = type; renderAccFilters(); updateUI(); }
-        
+
         function setFilter(f) {
             currentFilter = f;
-            ['all', 'ready', 'repair'].forEach(t => {
+            ['all','ready','repair'].forEach(t => {
                 const btn = document.getElementById('btn-' + t);
-                btn.className = t === f ? "flex-shrink-0 acc-tab bg-slate-800 text-white shadow-lg" : "flex-shrink-0 acc-tab bg-white text-slate-600";
+                btn.className = t === f
+                    ? "flex-shrink-0 acc-tab bg-slate-800 text-white shadow-lg"
+                    : "flex-shrink-0 acc-tab bg-white text-slate-600";
             });
             updateUI();
         }
 
-        // ฟังก์ชันระบบเจาะจงดูรูปภาพใหญ่ (Lightbox Control)
         function openLightbox(src, name) {
-            const lightbox = document.getElementById('lightbox');
-            const lightboxImg = document.getElementById('lightbox-img');
-            const lightboxCaption = document.getElementById('lightbox-caption');
-            
-            lightboxImg.src = src;
-            lightboxCaption.innerText = name;
-            lightbox.classList.add('active');
-            document.body.style.overflow = 'hidden'; // ล็อกการสกรอลล์ของหน้าเว็บหลักเบื้องหลัง
+            document.getElementById('lightbox-img').src       = src;
+            document.getElementById('lightbox-caption').innerText = name;
+            document.getElementById('lightbox').classList.add('active');
+            document.body.style.overflow = 'hidden';
         }
 
         function closeLightbox() {
-            const lightbox = document.getElementById('lightbox');
-            lightbox.classList.remove('active');
-            document.body.style.overflow = ''; // คืนค่าการสกรอลล์
+            document.getElementById('lightbox').classList.remove('active');
+            document.body.style.overflow = '';
         }
 
         document.getElementById('search-input').addEventListener('input', updateUI);
-        init(); setInterval(init, 30000);
+        init();
+        setInterval(init, 30000);
     </script>
 </body>
 </html>
